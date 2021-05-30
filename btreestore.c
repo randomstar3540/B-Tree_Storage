@@ -587,8 +587,18 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
                 break;
 
             }else{
+                void * decrypt_tmp = malloc(key_ptr->chunk_size * BITS_BYTE);
+
+                if(decrypt_tmp == NULL){
+                    return 1;
+                }
+
                 decrypt_tea_ctr(key_ptr->data,key_ptr->key,key_ptr->nonce,
-                                output,key_ptr->chunk_size);
+                                decrypt_tmp,key_ptr->chunk_size);
+
+                memcpy(output,decrypt_tmp,key_ptr->size);
+                free(decrypt_tmp);
+                
                 return 0;
             }
         }
