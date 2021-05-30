@@ -381,14 +381,14 @@ void dfs_export(tree_node * node, struct node * list, uint64_t counter){
     }
 }
 
-void dfs_free(tree_node * node, struct node * list){
+void dfs_free(tree_node * node){
 
     if (node == NULL){
         return;
     }
 
     for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
-        dfs_free(*(node->children + i), list);
+        dfs_free(*(node->children + i));
     }
 
     key_node * key_ptr;
@@ -406,7 +406,7 @@ void dfs_free(tree_node * node, struct node * list){
 void close_store(void * helper) {
     header * head = helper;
 
-    dfs_free()
+    dfs_free(head->root);
     return;
 }
 
