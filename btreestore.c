@@ -622,7 +622,7 @@ uint64_t btree_export(void * helper, struct node ** list) {
         return 0;
     }
     dfs_export(head->root,export_to,0);
-    list = export_to;
+    *list = *export_to;
     return head->node_size;
 }
 
