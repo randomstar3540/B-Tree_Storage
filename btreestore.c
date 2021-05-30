@@ -360,8 +360,53 @@ void * init_store(uint16_t branching, uint8_t n_processors) {
     return tree;
 }
 
+void dfs_export(tree_node * node, struct node * list, uint64_t counter){
+
+    if (node == NULL){
+        return;
+    }
+
+    struct node * export = list + counter;
+    uint32_t * keys = (uint32_t *)calloc(node->current_size,sizeof(uint32_t));
+    key_node * key_ptr;
+    for (int i = 0; i < node->current_size; ++i) {
+        key_ptr = *(node->key + i);
+        *(keys + i) = key_ptr->key_val;
+    }
+    export->keys = keys;
+    export->num_keys = node->current_size;
+
+    for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
+        dfs_export(*(node->children + i), list, counter + 1);
+    }
+}
+
+void dfs_free(tree_node * node, struct node * list){
+
+    if (node == NULL){
+        return;
+    }
+
+    for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
+        dfs_free(*(node->children + i), list);
+    }
+
+    key_node * key_ptr;
+    for (int i = 0; i < node->current_size; ++i) {
+        key_ptr = *(node->key + i);
+        free(key_ptr->data);
+        free(key_ptr);
+    }
+
+    free(node->children);
+    free(node->key);
+    free(node);
+}
+
 void close_store(void * helper) {
-    // Your code here
+    header * head = helper;
+
+    dfs_free()
     return;
 }
 
@@ -574,25 +619,9 @@ uint64_t btree_export(void * helper, struct node ** list) {
     if(export_to == NULL){
         return 0;
     }
-
+    dfs_export(head->root,export_to,0);
     *list = export_to;
     return 0;
-}
-
-void dfs_export(tree_node * node, struct node * list, uint64_t counter){
-    struct node * export = list + counter;
-    uint32_t * keys = (uint32_t *)calloc(node->current_size,sizeof(uint32_t));
-    key_node * key_ptr;
-    for (int i = 0; i < node->current_size; ++i) {
-        key_ptr = *(node->key + i);
-        *(keys + i) = key_ptr->key_val;
-    }
-    export->keys = keys;
-    export->num_keys = node->current_size;
-
-    for (int i = 0; i < node->current_size; ++i) {
-        dfs_export(*(node->children + i), list, counter + 1);
-    }
 }
 
 void encrypt_tea(uint32_t plain[2], uint32_t cipher[2], uint32_t key[4]) {
