@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 
 #include "btreestore.h"
@@ -604,6 +605,7 @@ void dfs_export(tree_node * node, struct node ** list, uint64_t* counter){
         key_ptr = *(node->key + i);
         *(keys + i) = key_ptr->key_val;
     }
+
     export_node->keys = keys;
     export_node->num_keys = node->current_size;
 
