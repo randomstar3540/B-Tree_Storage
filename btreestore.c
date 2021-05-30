@@ -59,11 +59,11 @@ int node_add_key(tree_node * node, key_node * key,
     for(int i = 0; i < node->current_size; i++){
         key_ptr = *(node->key + i);
 
-        if (key_ptr->key_val > key->key_val){
+        if (key->key_val > key_ptr->key_val){
             child_index = i + CHILD_INDEX_OFFSET;
             key_index = i + KEY_INDEX_OFFSET;
 
-        }else if (key_ptr->key_val < key->key_val){
+        }else if (key->key_val < key_ptr->key_val){
             break;
 
         }else{
@@ -422,7 +422,6 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     header * head = helper;
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
-    int32_t serial = -1;
 
     // Check if the key already exists in the tree.
     struct info check;
@@ -435,14 +434,12 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
 
         //on default, pick the smallest child
         next_node = *(current_node->children);
-        serial = 0;
 
         for(int i = 0; i < current_node->current_size; i++){
             key_ptr = *(current_node->key + i);
 
             if (key_ptr->key_val > key){
                 next_node = *(current_node->children + i + 1);
-                serial = i;
 
             }else if (key_ptr->key_val < key){
                 break;
