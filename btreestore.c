@@ -587,7 +587,7 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
 
             }else{
                 decrypt_tea_ctr(key_ptr->data,key_ptr->key,key_ptr->nonce,
-                                output,key_ptr->size/8);
+                                output,key_ptr->size / 8);
                 return 0;
             }
         }
@@ -750,12 +750,10 @@ void decrypt_tea_ctr(uint64_t * cipher, uint32_t key[4], uint64_t nonce,
                      uint64_t * plain, uint32_t num_blocks) {
     uint64_t tmp1;
     uint64_t tmp2;
-    uint64_t tmp3;
 
     for (int i = 0; i < num_blocks; i++){
         tmp1 = i ^ nonce;
-        tmp3 = cipher[i];
-        decrypt_tea((uint32_t*)&tmp1,(uint32_t*)&tmp2,key);
-        plain[i] = tmp3 ^ tmp2;
+        encrypt_tea((uint32_t*)&tmp1,(uint32_t*)&tmp2,key);
+        plain[i] = cipher[i] ^ tmp2;
     }
 }
