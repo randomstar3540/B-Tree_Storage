@@ -8,6 +8,17 @@
 
 #include "btreestore.h"
 #include "cmocka.h"
+
+void print_tree(struct node * list, uint64_t num){
+    for (int i = 0; i < num; i++){
+        int num_of_keys = (list + i)->num_keys;
+        printf("NODE: ");
+        for (int j = 0; j < num_of_keys; ++j) {
+            printf(" %d ", list[i].keys[j]);
+        }
+        printf("\n");
+    }
+}
 static void test_setup_1(void **state) {
     void * helper = init_store(4, 4);
 
@@ -18,6 +29,11 @@ static void test_setup_1(void **state) {
 
     struct info * found = calloc(1,sizeof(struct info));
     btree_retrieve(10,found,helper);
+
+    struct node * list = NULL;
+    uint64_t num = btree_export(helper, &list);
+    print_tree(list,num);
+
     printf("SIZE:%d\n",found->size);
     printf("DATA:%s\n", found->data);
     printf("NONCE:%lu\n",found->nonce);

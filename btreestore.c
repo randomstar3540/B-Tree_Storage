@@ -331,29 +331,6 @@ int check_node_underflow(tree_node * node, header * head){
 
 }
 
-void dfs_export(tree_node * node, struct node ** list, uint64_t counter){
-
-    if (node == NULL){
-        return;
-    }
-    struct node * export_node =
-            (struct node *)calloc(NODE_EXPORT_SIZE,sizeof(struct node));
-
-    uint32_t * keys = (uint32_t *)calloc(node->current_size,sizeof(uint32_t));
-    key_node * key_ptr;
-    for (int i = 0; i < node->current_size; ++i) {
-        key_ptr = *(node->key + i);
-        *(keys + i) = key_ptr->key_val;
-    }
-    export_node->keys = keys;
-    export_node->num_keys = node->current_size;
-
-    *(list + counter) = export_node;
-
-    for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
-        dfs_export(*(node->children + i), list, counter + 1);
-    }
-}
 
 void dfs_free(tree_node * node){
 
@@ -613,16 +590,41 @@ int btree_delete(uint32_t key, void * helper) {
     return 1;
 }
 
+
+void dfs_export(tree_node * node, struct node ** list, uint64_t* counter){
+
+    if (node == NULL){
+        return;
+    }
+    struct node * first = *list;
+    struct node * export_node = first + *counter;
+    uint32_t * keys = (uint32_t *)calloc(node->current_size,sizeof(uint32_t));
+    key_node * key_ptr;
+    for (int i = 0; i < node->current_size; ++i) {
+        key_ptr = *(node->key + i);
+        *(keys + i) = key_ptr->key_val;
+    }
+    export_node->keys = keys;
+    export_node->num_keys = node->current_size;
+
+    for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
+        *counter += 1;
+        dfs_export(*(node->children + i), list, counter);
+    }
+}
+
+
 uint64_t btree_export(void * helper, struct node ** list) {
     header * head = helper;
-    void * export_to = calloc(head->node_size,sizeof(struct node *));
+    *list = calloc(head->node_size,sizeof(struct node));
 
-    if(export_to == NULL){
+    if(*list == NULL){
         return 0;
     }
+    uint64_t counter_num = 0;
+    uint64_t * counter = &counter_num;
+    dfs_export(head->root,list,counter);
 
-    dfs_export(head->root,export_to,0);
-    *list = export_to;
 
     return head->node_size;
 }
