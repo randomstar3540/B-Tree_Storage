@@ -505,7 +505,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     memset(data,0,count);
     memcpy(data,plaintext,count);
     int64_t chunk_size = divide_data((uint8_t **)&data,count);
-    
+
     if(chunk_size == -1){
         return 1;
     }
@@ -513,7 +513,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     encrypt_tea_ctr(data,encryption_key,nonce,data,chunk_size);
 
     new_key->key_val = key;
-    new_key->size = count;
+    new_key->size = chunk_size * 8;
     new_key->data = data;
     new_key->nonce = nonce;
 
@@ -587,7 +587,7 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
 
             }else{
                 decrypt_tea_ctr(key_ptr->data,key_ptr->key,key_ptr->nonce,
-                                output,key_ptr->size);
+                                output,key_ptr->size/8);
                 return 0;
             }
         }
@@ -750,10 +750,12 @@ void decrypt_tea_ctr(uint64_t * cipher, uint32_t key[4], uint64_t nonce,
                      uint64_t * plain, uint32_t num_blocks) {
     uint64_t tmp1;
     uint64_t tmp2;
+    uint64_t tmp3;
 
     for (int i = 0; i < num_blocks; i++){
         tmp1 = i ^ nonce;
-        encrypt_tea((uint32_t*)&tmp1,(uint32_t*)&tmp2,key);
-        plain[i] = cipher[i] ^ tmp2;
+        tmp3 = cipher[i];
+        decrypt_tea((uint32_t*)&tmp1,(uint32_t*)&tmp2,key);
+        plain[i] = tmp3 ^ tmp2;
     }
 }
