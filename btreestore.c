@@ -489,7 +489,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     memset(data,0,count);
     memcpy(data,plaintext,count);
 
-//    encrypt_tea_ctr(plaintext,encryption_key,nonce,data,count);
+    encrypt_tea_ctr(plaintext,encryption_key,nonce,data,count);
 
     new_key->key_val = key;
     new_key->size = count;
