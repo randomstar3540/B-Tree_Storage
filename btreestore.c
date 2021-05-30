@@ -10,8 +10,41 @@ void encrypt_key_cpy(uint32_t* key_to ,uint32_t encryption_key[4]){
         key_to[i] = encryption_key[i];
     }
 }
+void dfs_debug(tree_node * node, uint64_t* counter){
+    if (node == NULL){
+        return;
+    }
+    key_node * key_ptr;
+    printf("NODE: status %d, SIZE: %d\n",node->status, node->current_size);
+    printf("ADDR:%p\n",node);
+    printf("CONT:%lu\n",*counter);
+    for (int i = 0; i < node->current_size; ++i) {
+        key_ptr = *(node->key + i);
+        printf("Key :%d VALUE :%lu \n",i, key_ptr->key_val);
+    }
 
-
+    for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
+        printf("Child :%d ADDR :%p \n",i, *(node->children + i));
+    }
+    printf("\n\n");
+    for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
+        dfs_debug(*(node->children + i), counter);
+    }
+}
+void debug(void * helper){
+    header * head = helper;
+    uint64_t counter_num = 0;
+    uint64_t * counter = &counter_num;
+    printf("================DEBUG INFORMATION=================\n");
+    printf("=================HEAD INFORMATION=================\n");
+    printf("Branching: %d ",head->branching);
+    printf("Processor: %d \n",head->processor);
+    printf("KEYS: %lu \n",head->key_size);
+    printf("NODES: %lu \n",head->node_size);
+    printf("=====================END==========================\n");
+    dfs_debug(head->root,counter);
+    printf("=====================END==========================\n");
+}
 /*
  * Allocating space for a new node
  * And initialize the space for storing keys and child
@@ -310,6 +343,7 @@ int check_node_overflow(tree_node * node, header * head){
             }
 
             head->root = new_root;
+            head->node_size +=1;
 
         }else{
             //If a parent node exist
@@ -419,10 +453,10 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
         for(int i = 0; i < current_node->current_size; i++){
             key_ptr = *(current_node->key + i);
 
-            if (key_ptr->key_val > key){
+            if (key_ptr->key_val < key){
                 next_node = *(current_node->children + i + 1);
 
-            }else if (key_ptr->key_val < key){
+            }else if (key_ptr->key_val > key){
                 break;
 
             }else{
@@ -610,6 +644,10 @@ void dfs_export(tree_node * node, struct node ** list, uint64_t* counter){
     export_node->keys = keys;
     export_node->num_keys = node->current_size;
 
+    if (node->status == LEAF){
+        return;
+    }
+
     for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
         *counter += 1;
         dfs_export(*(node->children + i), list, counter);
@@ -620,7 +658,6 @@ void dfs_export(tree_node * node, struct node ** list, uint64_t* counter){
 uint64_t btree_export(void * helper, struct node ** list) {
     header * head = helper;
     *list = calloc(head->node_size,sizeof(struct node));
-    fprintf(stderr,"%lu\n",head->node_size);
 
     if(*list == NULL){
         return 0;
