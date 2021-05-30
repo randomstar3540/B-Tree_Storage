@@ -519,10 +519,10 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
         for(int i = 0; i < current_node->current_size; i++){
             key_ptr = *(current_node->key + i);
 
-            if (key_ptr->key_val > key){
+            if (key_ptr->key_val < key){
                 next_node = *(current_node->children + i + 1);
 
-            }else if (key_ptr->key_val < key){
+            }else if (key_ptr->key_val > key){
                 break;
 
             }else{
@@ -558,10 +558,10 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
         for(int i = 0; i < current_node->current_size; i++){
             key_ptr = *(current_node->key + i);
 
-            if (key_ptr->key_val > key){
+            if (key_ptr->key_val < key){
                 next_node = *(current_node->children + i + 1);
 
-            }else if (key_ptr->key_val < key){
+            }else if (key_ptr->key_val > key){
                 break;
 
             }else{
