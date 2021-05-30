@@ -149,7 +149,7 @@ int node_remove_key(tree_node * node, uint32_t key, header * head){
             key_ptr = NULL;
 
             node->current_size -= 1;
-            head->size -= 1;
+            head->key_size -= 1;
 
             return 0;
         }
@@ -262,6 +262,7 @@ int split_node(tree_node * old, tree_node * new,
 
     new->current_size = old->current_size - split_index;
     old->current_size = median;
+    head->node_size += 1;
     return 0;
 }
 
@@ -330,36 +331,6 @@ int check_node_underflow(tree_node * node, header * head){
 
 }
 
-/*
- * Initialize the b_tree data structure
- * Malloc a block of memory to store the config variables
- * Return:
- * On success: return the pointer of the block of memory
- * Failed: return NULL
- */
-void * init_store(uint16_t branching, uint8_t n_processors) {
-
-    header * tree = (header *)malloc(sizeof(header));
-    memset(tree,0,sizeof(header));
-
-    if(tree == NULL){
-        //Check if malloc failed
-        return NULL;
-    }
-
-    tree->branching = branching;
-    tree->processor = n_processors;
-
-    tree_node * root = make_new_node(tree);
-
-    // Initialize the node
-    root->status = LEAF;
-    tree->root = root;
-    tree->size = 0;
-
-    return tree;
-}
-
 void dfs_export(tree_node * node, struct node * list, uint64_t counter){
 
     if (node == NULL){
@@ -403,12 +374,43 @@ void dfs_free(tree_node * node){
     free(node);
 }
 
+/*
+ * Initialize the b_tree data structure
+ * Malloc a block of memory to store the config variables
+ * Return:
+ * On success: return the pointer of the block of memory
+ * Failed: return NULL
+ */
+void * init_store(uint16_t branching, uint8_t n_processors) {
+
+    header * tree = (header *)malloc(sizeof(header));
+    memset(tree,0,sizeof(header));
+
+    if(tree == NULL){
+        //Check if malloc failed
+        return NULL;
+    }
+
+    tree->branching = branching;
+    tree->processor = n_processors;
+
+    tree_node * root = make_new_node(tree);
+
+    // Initialize the node
+    root->status = LEAF;
+    tree->root = root;
+    tree->key_size = 0;
+    tree->node_size = 1;
+    return tree;
+}
+
+
+
 void close_store(void * helper) {
     header * head = helper;
 
     dfs_free(head->root);
     free(head);
-    return;
 }
 
 /*
@@ -486,7 +488,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
 
     node_add_key(current_node,new_key,NULL,head);
 
-    head->size += 1;
+    head->key_size += 1;
     check_node_overflow(current_node,head);
     return 0;
 }
@@ -613,7 +615,7 @@ int btree_delete(uint32_t key, void * helper) {
 
 uint64_t btree_export(void * helper, struct node ** list) {
     header * head = helper;
-    uint64_t size = head->size;
+    uint64_t size = head->node_size;
     struct node * export_to =
             (struct node *)calloc(size,sizeof(struct node));
 
@@ -622,7 +624,7 @@ uint64_t btree_export(void * helper, struct node ** list) {
     }
     dfs_export(head->root,export_to,0);
     *list = export_to;
-    return head->size;
+    return head->node_size;
 }
 
 void encrypt_tea(uint32_t plain[2], uint32_t cipher[2], uint32_t key[4]) {

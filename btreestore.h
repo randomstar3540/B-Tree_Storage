@@ -54,7 +54,8 @@ typedef struct header{
     uint16_t branching;
     uint8_t processor;
     struct tree_node * root;
-    uint64_t size;
+    uint64_t key_size;
+    uint64_t node_size;
 }header;
 
 void * init_store(uint16_t branching, uint8_t n_processors);
