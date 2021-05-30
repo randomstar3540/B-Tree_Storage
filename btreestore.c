@@ -366,12 +366,17 @@ int check_node_underflow(tree_node * node, header * head){
 
 }
 
-uint64_t divide_data(uint8_t ** data, uint64_t count){
+int64_t divide_data(uint8_t ** data, uint64_t count){
     if(count % 8 == 0){
         return count / 8;
     }else{
         uint64_t padding = 8 - (count % 8);
         *data = realloc(*data,count + padding);
+
+        if (*data == NULL){
+            return -1;
+        }
+
         memset(*data + count, 0 , padding);
         return (count + padding) / 8;
     }
@@ -499,7 +504,11 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     memset(new_key,0,sizeof(key_node));
     memset(data,0,count);
     memcpy(data,plaintext,count);
-    uint64_t chunk_size = divide_data((uint8_t **)&data,count);
+    int64_t chunk_size = divide_data((uint8_t **)&data,count);
+    
+    if(chunk_size == -1){
+        return 1;
+    }
 
     encrypt_tea_ctr(data,encryption_key,nonce,data,chunk_size);
 
