@@ -407,6 +407,7 @@ void close_store(void * helper) {
     header * head = helper;
 
     dfs_free(head->root);
+    free(head);
     return;
 }
 
