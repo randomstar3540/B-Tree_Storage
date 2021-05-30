@@ -4,6 +4,24 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define KEY_INDEX 4
+
+#define NORMAL 0
+#define LEAF 1
+#define SERIAL_OFFSET 1
+#define PUSH_OFFSET 2
+#define SPLIT_OFFSET 1
+#define KEY_INDEX_OFFSET 1
+#define KEY_PUSH_OFFSET 1
+#define KEY_SPLIT_OFFSET 1
+#define KEY_REMOVE_OFFSET 1
+
+#define CHILD_INDEX_OFFSET 2
+#define CHILD_PUSH_OFFSET 1
+#define CHILD_SIZE_OFFSET 1
+#define CHILD_SPLIT_OFFSET 2
+#define CHILD_SWAP_OFFSET 1
+
 struct info {
     uint32_t size;
     uint32_t key[4];
@@ -15,6 +33,29 @@ struct node {
     uint16_t num_keys;
     uint32_t * keys;
 };
+
+typedef struct key_node{
+    uint64_t key_val;
+    uint32_t size;
+    uint32_t key[4];
+    uint64_t nonce;
+    void * data;
+}key_node;
+
+typedef struct tree_node{
+    uint16_t current_size;
+    uint8_t status;
+    key_node ** key;
+    struct tree_node * parent;
+    struct tree_node ** children;
+}tree_node;
+
+typedef struct header{
+    uint16_t branching;
+    uint8_t processor;
+    struct tree_node * root;
+    uint64_t size;
+}header;
 
 void * init_store(uint16_t branching, uint8_t n_processors);
 
