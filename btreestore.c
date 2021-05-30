@@ -614,14 +614,14 @@ int btree_delete(uint32_t key, void * helper) {
 
 uint64_t btree_export(void * helper, struct node ** list) {
     header * head = helper;
-    struct node * export_to =
-            (struct node *)calloc(head->node_size,sizeof(struct node *));
+    struct node ** export_to =
+            (struct node **)calloc(head->node_size,sizeof(struct node *));
 
     if(export_to == NULL){
         return 0;
     }
-    dfs_export(head->root,&export_to,0);
-    *list = export_to;
+    dfs_export(head->root,export_to,0);
+    list = export_to;
     return head->node_size;
 }
 
