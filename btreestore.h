@@ -22,6 +22,7 @@
 #define CHILD_SPLIT_OFFSET 2
 #define CHILD_SWAP_OFFSET 1
 
+#define NODE_EXPORT_SIZE 1
 struct info {
     uint32_t size;
     uint32_t key[4];

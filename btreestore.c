@@ -331,13 +331,14 @@ int check_node_underflow(tree_node * node, header * head){
 
 }
 
-void dfs_export(tree_node * node, struct node * list, uint64_t counter){
+void dfs_export(tree_node * node, struct node ** list, uint64_t counter){
 
     if (node == NULL){
         return;
     }
 
-    struct node * export = list + counter;
+    struct node * export =
+            (struct node *)calloc(NODE_EXPORT_SIZE,sizeof(struct node));
     uint32_t * keys = (uint32_t *)calloc(node->current_size,sizeof(uint32_t));
     key_node * key_ptr;
     for (int i = 0; i < node->current_size; ++i) {
@@ -346,6 +347,7 @@ void dfs_export(tree_node * node, struct node * list, uint64_t counter){
     }
     export->keys = keys;
     export->num_keys = node->current_size;
+    *(list + counter) = export;
 
     for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
         dfs_export(*(node->children + i), list, counter + 1);
@@ -614,7 +616,7 @@ uint64_t btree_export(void * helper, struct node ** list) {
     header * head = helper;
     uint64_t size = head->node_size;
     struct node * export_to =
-            (struct node *)calloc(size,sizeof(struct node));
+            (struct node *)calloc(size,sizeof(struct node *));
 
     if(export_to == NULL){
         return 0;
