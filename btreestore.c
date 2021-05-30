@@ -620,7 +620,7 @@ void dfs_export(tree_node * node, struct node ** list, uint64_t* counter){
 uint64_t btree_export(void * helper, struct node ** list) {
     header * head = helper;
     *list = calloc(head->node_size,sizeof(struct node));
-    printf("%lu\n",head->node_size);
+    fprintf(stderr,"%lu\n",head->node_size);
 
     if(*list == NULL){
         return 0;
