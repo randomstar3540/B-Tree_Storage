@@ -36,6 +36,7 @@ struct node {
 };
 
 typedef struct key_node{
+    int64_t chunk_size;
     uint64_t key_val;
     uint32_t size;
     uint32_t key[4];

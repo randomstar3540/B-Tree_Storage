@@ -513,9 +513,10 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     encrypt_tea_ctr(data,encryption_key,nonce,data,chunk_size);
 
     new_key->key_val = key;
-    new_key->size = chunk_size * 8;
+    new_key->size = count;
     new_key->data = data;
     new_key->nonce = nonce;
+    new_key->chunk_size = chunk_size;
 
     encrypt_key_cpy(new_key->key, encryption_key);
 
@@ -587,7 +588,7 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
 
             }else{
                 decrypt_tea_ctr(key_ptr->data,key_ptr->key,key_ptr->nonce,
-                                output,key_ptr->size / 8);
+                                output,key_ptr->chunk_size);
                 return 0;
             }
         }
