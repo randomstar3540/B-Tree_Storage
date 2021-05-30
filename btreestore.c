@@ -622,7 +622,7 @@ uint64_t btree_export(void * helper, struct node ** list) {
     }
     dfs_export(head->root,export_to,0);
     *list = export_to;
-    return 0;
+    return head->size;
 }
 
 void encrypt_tea(uint32_t plain[2], uint32_t cipher[2], uint32_t key[4]) {
