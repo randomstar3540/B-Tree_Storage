@@ -699,7 +699,7 @@ void * init_store(uint16_t branching, uint8_t n_processors) {
     tree->root = root;
     tree->key_size = 0;
     tree->node_size = 1;
-    tree->minimum = ceil(branching / 2);
+    tree->minimum = ceil(branching -1 / 2);
     return tree;
 }
 
@@ -884,7 +884,6 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
 int btree_delete(uint32_t key, void * helper) {
     // Your code here
     // Check if the key already exists in the tree.
-    debug(helper);
     header * head = helper;
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
