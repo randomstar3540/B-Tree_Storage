@@ -699,7 +699,7 @@ void * init_store(uint16_t branching, uint8_t n_processors) {
     tree->root = root;
     tree->key_size = 0;
     tree->node_size = 1;
-    tree->minimum = ceil(branching / 2);
+    tree->minimum = ceil((branching-1) / 2);
     return tree;
 }
 
