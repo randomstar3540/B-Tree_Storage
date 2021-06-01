@@ -48,23 +48,23 @@ static void test_setup_1(void **state) {
     btree_insert(21,data,strlen(data),enc_key,100,helper);
 
     btree_insert(22,data,strlen(data),enc_key,100,helper);
-    list = NULL;
-    num = btree_export(helper, &list);
-    print_tree(list,num);
+//    list = NULL;
+//    num = btree_export(helper, &list);
+//    print_tree(list,num);
     btree_delete(6,helper);
-    list = NULL;
-    num = btree_export(helper, &list);
-    print_tree(list,num);
-    debug(helper);
+//    list = NULL;
+//    num = btree_export(helper, &list);
+//    print_tree(list,num);
+//    debug(helper);
     btree_delete(2,helper);
-    list = NULL;
-    num = btree_export(helper, &list);
-    print_tree(list,num);
+//    list = NULL;
+//    num = btree_export(helper, &list);
+//    print_tree(list,num);
 //    debug(helper);
     btree_delete(5,helper);
-    list = NULL;
-    num = btree_export(helper, &list);
-    print_tree(list,num);
+//    list = NULL;
+//    num = btree_export(helper, &list);
+//    print_tree(list,num);
 
 //    debug(helper);
 
@@ -76,9 +76,9 @@ static void test_setup_1(void **state) {
 //    struct info * found = calloc(1,sizeof(struct info));
 //    btree_retrieve(10,found,helper);
 //
-    list = NULL;
-    num = btree_export(helper, &list);
-    print_tree(list,num);
+//    list = NULL;
+//    num = btree_export(helper, &list);
+//    print_tree(list,num);
 //
 //    printf("SIZE:%d\n",found->size);
 //    printf("DATA:%s\n", found->data);
