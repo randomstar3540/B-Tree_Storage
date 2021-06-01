@@ -29,17 +29,26 @@ static void test_setup_1(void **state) {
 
     char * data = "hello";
     uint32_t enc_key[4] = {0};
-    btree_insert(5,data,strlen(data),enc_key,0,helper);
-    btree_insert(2,data,strlen(data),enc_key,100,helper);
-    btree_insert(1,data,strlen(data),enc_key,100,helper);
+    btree_insert(2,data,strlen(data),enc_key,0,helper);
     btree_insert(3,data,strlen(data),enc_key,100,helper);
-    btree_insert(4,data,strlen(data),enc_key,100,helper);
+    btree_insert(1,data,strlen(data),enc_key,100,helper);
+
     btree_insert(8,data,strlen(data),enc_key,100,helper);
-    btree_insert(21,data,strlen(data),enc_key,100,helper);
-    btree_insert(6,data,strlen(data),enc_key,100,helper);
-    btree_insert(20,data,strlen(data),enc_key,100,helper);
-    btree_insert(22,data,strlen(data),enc_key,100,helper);
+
     btree_insert(80,data,strlen(data),enc_key,100,helper);
+
+    btree_insert(5,data,strlen(data),enc_key,100,helper);
+
+    btree_insert(6,data,strlen(data),enc_key,100,helper);
+
+    btree_insert(4,data,strlen(data),enc_key,100,helper);
+
+    btree_insert(20,data,strlen(data),enc_key,100,helper);
+    debug(helper);
+    btree_insert(21,data,strlen(data),enc_key,100,helper);
+    debug(helper);
+    btree_insert(22,data,strlen(data),enc_key,100,helper);
+
 
 
 

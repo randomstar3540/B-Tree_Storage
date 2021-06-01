@@ -27,6 +27,7 @@ void dfs_debug(tree_node * node, uint64_t* counter){
     for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
         printf("Child :%d ADDR :%p \n",i, *(node->children + i));
     }
+    printf("Parent %p \n",node->parent);
     printf("\n\n");
     for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
         dfs_debug(*(node->children + i), counter);
@@ -300,6 +301,18 @@ int split_node(tree_node * old, tree_node * new,
     new->current_size = old->current_size - split_index;
     old->current_size = median;
     head->node_size += 1;
+
+    /*
+     * Update children in the new node
+     */
+    tree_node  * child_ptr;
+    for (int i = 0; i < new->current_size + CHILD_SIZE_OFFSET; i++){
+        child_ptr = *(new->children + i);
+        if (child_ptr != NULL){
+            child_ptr->parent = new;
+        }
+
+    }
     return 0;
 }
 
@@ -689,7 +702,6 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
 
-    fprintf(stderr, "insert %d \n",key);
     // Check if the key already exists in the tree.
     struct info check;
     if(btree_retrieve(key,&check,helper) == 0){
