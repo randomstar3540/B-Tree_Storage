@@ -16,19 +16,19 @@ void dfs_debug(tree_node * node, uint64_t* counter){
         return;
     }
     key_node * key_ptr;
-    fprintf(stderr,"NODE: status %d, SIZE: %d\n",node->status, node->current_size);
-    fprintf(stderr,"ADDR:%p\n",node);
-    fprintf(stderr,"CONT:%lu\n",*counter);
+    printf("NODE: status %d, SIZE: %d\n",node->status, node->current_size);
+    printf("ADDR:%p\n",node);
+    printf("CONT:%lu\n",*counter);
     for (int i = 0; i < node->current_size; ++i) {
         key_ptr = *(node->key + i);
-        fprintf(stderr,"Key :%d VALUE :%lu \n",i, key_ptr->key_val);
+        printf("Key :%d VALUE :%lu \n",i, key_ptr->key_val);
     }
 
     for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
         printf("Child :%d ADDR :%p \n",i, *(node->children + i));
     }
-    fprintf(stderr,"Parent %p \n",node->parent);
-    fprintf(stderr,"\n\n");
+    printf("Parent %p \n",node->parent);
+    printf("\n\n");
     for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
         dfs_debug(*(node->children + i), counter);
     }
@@ -37,16 +37,16 @@ void debug(void * helper){
     header * head = helper;
     uint64_t counter_num = 0;
     uint64_t * counter = &counter_num;
-    fprintf(stderr,"================DEBUG INFORMATION=================\n");
-    fprintf(stderr,"=================HEAD INFORMATION=================\n");
-    fprintf(stderr,"Branching: %d ",head->branching);
-    fprintf(stderr,"Processor: %d \n",head->processor);
-    fprintf(stderr,"KEYS: %lu \n",head->key_size);
-    fprintf(stderr,"NODES: %lu \n",head->node_size);
-    fprintf(stderr,"MINIMUM: %d \n",head->minimum);
-    fprintf(stderr,"=====================END==========================\n");
+    printf("================DEBUG INFORMATION=================\n");
+    printf("=================HEAD INFORMATION=================\n");
+    printf("Branching: %d ",head->branching);
+    printf("Processor: %d \n",head->processor);
+    printf("KEYS: %lu \n",head->key_size);
+    printf("NODES: %lu \n",head->node_size);
+    printf("MINIMUM: %d \n",head->minimum);
+    printf("=====================END==========================\n");
     dfs_debug(head->root,counter);
-    fprintf(stderr,"=====================END==========================\n");
+    printf("=====================END==========================\n");
 }
 /*
  * Allocating space for a new node
@@ -540,13 +540,13 @@ int check_node_underflow(tree_node * target, header * head){
         key_dest = target_parent->key + left_index;
         key_src = target_parent->key + left_index + KEY_REMOVE_OFFSET;
         size = sizeof(key_node*) *
-                target_parent->current_size - left_index - KEY_REMOVE_OFFSET;
+               target_parent->current_size - left_index - KEY_REMOVE_OFFSET;
         memmove(key_dest,key_src,size);
 
         child_dest = target_parent->children + left_index;
         child_src = target_parent->children + left_index + KEY_REMOVE_OFFSET;
         size = sizeof(tree_node*) *
-                target_parent->current_size - left_index;
+               target_parent->current_size - left_index;
         memmove(child_dest,child_src,size);
 
         target_parent->current_size -= 1;
@@ -602,13 +602,13 @@ int check_node_underflow(tree_node * target, header * head){
         key_dest = target_parent->key + right_index;
         key_src = target_parent->key + right_index + KEY_REMOVE_OFFSET;
         size = sizeof(key_node*) *
-                target_parent->current_size - right_index - KEY_REMOVE_OFFSET;
+               target_parent->current_size - right_index - KEY_REMOVE_OFFSET;
         memmove(key_dest,key_src,size);
 
         child_dest = target_parent->children + right_index + KEY_REMOVE_OFFSET;
         child_src = target_parent->children + right_index + PUSH_OFFSET;
         size = sizeof(tree_node*) *
-                target_parent->current_size - right_index - KEY_REMOVE_OFFSET;
+               target_parent->current_size - right_index - KEY_REMOVE_OFFSET;
         memmove(child_dest,child_src,size);
 
         target_parent->current_size -= 1;
@@ -699,7 +699,7 @@ void * init_store(uint16_t branching, uint8_t n_processors) {
     tree->root = root;
     tree->key_size = 0;
     tree->node_size = 1;
-    tree->minimum = ceil((branching -1) / 2);
+    tree->minimum = ceil(branching / 2);
     return tree;
 }
 
@@ -884,7 +884,6 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
 int btree_delete(uint32_t key, void * helper) {
     // Your code here
     // Check if the key already exists in the tree.
-    debug(helper);
     header * head = helper;
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
