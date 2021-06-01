@@ -44,10 +44,14 @@ static void test_setup_1(void **state) {
     btree_insert(4,data,strlen(data),enc_key,100,helper);
 
     btree_insert(20,data,strlen(data),enc_key,100,helper);
-    debug(helper);
+
     btree_insert(21,data,strlen(data),enc_key,100,helper);
-    debug(helper);
+
     btree_insert(22,data,strlen(data),enc_key,100,helper);
+
+    btree_delete(6,helper);
+
+    debug(helper);
 
 
 
