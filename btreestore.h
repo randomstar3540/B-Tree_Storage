@@ -23,6 +23,11 @@
 #define CHILD_SIZE_OFFSET 1
 #define CHILD_SPLIT_OFFSET 2
 #define CHILD_SWAP_OFFSET 1
+#define LEFT_CHILD_OFFSET 1
+#define RIGHT_CHILD_OFFSET 1
+
+#define TRUE 1
+#define FALSE 0
 
 #define NODE_EXPORT_SIZE 1
 struct info {
@@ -56,6 +61,7 @@ typedef struct tree_node{
 
 typedef struct header{
     uint16_t branching;
+    uint16_t minimum;
     uint8_t processor;
     struct tree_node * root;
     uint64_t key_size;

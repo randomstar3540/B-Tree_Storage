@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 
 
 #include "btreestore.h"
@@ -175,7 +176,7 @@ int node_remove_key(tree_node * node, uint32_t key, header * head){
             key_dest = node->key + i;
             key_src = node->key + i + KEY_REMOVE_OFFSET;
             size = sizeof(key_node*) *
-                   (node->current_size - i + KEY_REMOVE_OFFSET);
+                   (node->current_size - i - KEY_REMOVE_OFFSET);
             memmove(key_dest,key_src,size);
 
             free(key_ptr->data);
@@ -192,10 +193,11 @@ int node_remove_key(tree_node * node, uint32_t key, header * head){
     return 1;
 }
 
-int swap_and_remove(tree_node * node, uint32_t key, header * head){
+tree_node * swap_and_remove(tree_node * node, uint32_t key, header * head){
     key_node * key_ptr;
     key_node * max_key_ptr;
     tree_node * left_child;
+    tree_node * target;
     uint64_t max_key_index;
 
     if (node->status != LEAF){
@@ -206,7 +208,7 @@ int swap_and_remove(tree_node * node, uint32_t key, header * head){
 
             if(key_ptr->key_val == key){
                 if (left_child->current_size == 0){
-                    return 1;
+                    return NULL;
                 }
 
                 max_key_index = left_child->current_size - CHILD_SWAP_OFFSET;
@@ -215,15 +217,15 @@ int swap_and_remove(tree_node * node, uint32_t key, header * head){
                 *(left_child->key + max_key_index) = key_ptr;
                 *(node->key + i) = max_key_ptr;
 
-                swap_and_remove(left_child, key, head);
-                return 0;
+                target = swap_and_remove(left_child, key, head);
+                return target;
             }
         }
-        return 1;
+        return NULL;
     }
 
     node_remove_key(node, key, head);
-    return 0;
+    return node;
 }
 
 
@@ -362,8 +364,239 @@ int check_node_overflow(tree_node * node, header * head){
     }
 }
 
-int check_node_underflow(tree_node * node, header * head){
+int check_node_underflow(tree_node * target, header * head){
+    tree_node * target_parent;
+    target_parent = target->parent;
+    tree_node * child;
+    tree_node * left_child;
+    tree_node * right_child;
+    key_node * left_key;
+    key_node * right_key;
+    uint8_t child_found = FALSE;
+    uint64_t left_index;
+    uint64_t right_index;
 
+    if (target->current_size >= head->minimum){
+        return 0;
+    }
+
+    for (int i = 0; i < target_parent->current_size + CHILD_SIZE_OFFSET; i++){
+        child = *(target_parent->children + i);
+
+
+        if(i > 0){
+            left_key = *(target_parent->key + i);
+            left_child = *(target_parent->children + i - LEFT_CHILD_OFFSET);
+            left_index = i;
+        } else {
+            left_key = NULL;
+            left_child = NULL;
+        }
+
+        if(i < target_parent->current_size){
+            right_key = *(target_parent->key + i + KEY_INDEX_OFFSET);
+            right_child = *(target_parent->children + i + RIGHT_CHILD_OFFSET);
+            right_index = i + KEY_INDEX_OFFSET;
+        } else {
+            right_key = NULL;
+            right_child = NULL;
+        }
+
+        if(child == target){
+            child_found = TRUE;
+            break;
+        }
+
+    }
+
+    if(child_found == FALSE){
+        return 1;
+    }
+
+    if(left_key != NULL && left_child != NULL
+       && left_child->current_size > head->minimum){
+
+        uint64_t max_key_index;
+        key_node * max_key_ptr;
+        tree_node * max_child;
+
+        max_key_index = left_child->current_size - CHILD_SWAP_OFFSET;
+        max_key_ptr = *(left_child->key + max_key_index);
+        max_child = *(left_child->children + left_child->current_size);
+
+        *(left_child->key + max_key_index) = NULL;
+        *(left_child->children + left_child->current_size) = NULL;
+
+        node_add_key(target,left_key,*(target->children),head);
+        *(target->children) = max_child;
+        *(target_parent->key + left_index) = max_key_ptr;
+        left_child->current_size -= 1;
+        return 0;
+    }
+
+
+    if (right_key != NULL && right_child != NULL
+        && right_child->current_size > head->minimum){
+
+        key_node * min_key_ptr;
+        tree_node * min_child;
+
+        min_key_ptr = *(right_child->key);
+        min_child = *(right_child->children);
+
+        key_node ** key_dest;
+        key_node ** key_src;
+        tree_node ** child_dest;
+        tree_node ** child_src;
+        uint64_t size;
+
+        /*
+         * Push the child and key forward and overwrite the key we want to swap
+         *
+         * dest: the key/child we want to swap
+         * src: the key/child next to the key we want to swap
+         * size: number of key/child we want to push forward
+         */
+        key_dest = right_child->key;
+        key_src = right_child->key + KEY_REMOVE_OFFSET;
+        size = sizeof(key_node*) *
+               (right_child->current_size - KEY_REMOVE_OFFSET);
+        memmove(key_dest,key_src,size);
+
+        child_dest = right_child->children;
+        child_src = right_child->children + KEY_REMOVE_OFFSET;
+        size = sizeof(tree_node *) * (right_child->current_size);
+        memmove(child_dest,child_src,size);
+
+        node_add_key(target,right_key,min_child,head);
+        *(target_parent->key + right_index) = min_key_ptr;
+        right_child->current_size -=1;
+        return 0;
+    }
+
+    if(left_key != NULL && left_child != NULL){
+
+        key_node ** key_dest;
+        key_node ** key_src;
+        tree_node ** child_dest;
+        tree_node ** child_src;
+        uint64_t size;
+
+        /*
+         * Push the child and key backward
+         *
+         * dest: first key/child in target node + size after merge
+         * src: first key/child in target node
+         * size: number of key/child we want to push forward
+         */
+        key_dest = target->key
+                   + left_child->current_size + KEY_REMOVE_OFFSET;
+        key_src = target->key;
+        size = sizeof(key_node*) * (target->current_size);
+        memmove(key_dest,key_src,size);
+
+        child_dest = target->children
+                     + left_child->current_size + KEY_REMOVE_OFFSET;
+        child_src = target->children;
+        size = sizeof(tree_node *)
+               * (target->current_size + KEY_REMOVE_OFFSET);
+        memmove(child_dest,child_src,size);
+
+        /*
+         * Copy keys and children from the left node
+         */
+        size = sizeof(key_node*) * (left_child->current_size);
+        memcpy(target->key, left_child->key, size);
+        size = sizeof(tree_node*) *
+               (left_child->current_size + KEY_REMOVE_OFFSET);
+        memcpy(target->children,left_child->children,size);
+        *(target->key + left_child->current_size) = left_key;
+
+        /*
+         * Push key/child in parent forward
+         */
+        key_dest = target_parent->key + left_index;
+        key_src = target_parent->key + left_index + KEY_REMOVE_OFFSET;
+        size = target_parent->current_size - left_index - KEY_REMOVE_OFFSET;
+        memmove(key_dest,key_src,size);
+
+        child_dest = target_parent->children + left_index;
+        child_src = target_parent->children + left_index + KEY_REMOVE_OFFSET;
+        size = target_parent->current_size - left_index;
+        memmove(child_dest,child_src,size);
+
+        target_parent->current_size -= 1;
+        target->current_size += left_child->current_size + 1;
+        free(left_child->children);
+        free(left_child->key);
+        free(left_child);
+        head->node_size -=1;
+
+        if (target_parent == head->root && target_parent->current_size < 1){
+            free(target_parent->children);
+            free(target_parent->key);
+            free(target_parent);
+            head->node_size -= 1;
+            head->root = target;
+            return 0;
+        }
+
+        check_node_underflow(target_parent,head);
+        return 0;
+    }
+
+    if(right_key != NULL && right_child != NULL){
+        key_node ** key_dest;
+        key_node ** key_src;
+        tree_node ** child_dest;
+        tree_node ** child_src;
+        uint64_t size;
+
+        /*
+         * Copy keys and children from the right node
+         */
+        size = sizeof(key_node*) * (right_child->current_size);
+        memcpy(target->key+target->current_size + KEY_REMOVE_OFFSET,
+               right_child->key,size);
+        size = sizeof(tree_node*) *
+               (right_child->current_size + KEY_REMOVE_OFFSET);
+        memcpy(target->children+target->current_size,
+               right_child->children,size);
+        *(target->key+target->current_size) = right_key;
+
+        /*
+         * Push key/child in parent forward
+         */
+        key_dest = target_parent->key + right_index;
+        key_src = target_parent->key + right_index + KEY_REMOVE_OFFSET;
+        size = target_parent->current_size - right_index - KEY_REMOVE_OFFSET;
+        memmove(key_dest,key_src,size);
+
+        child_dest = target_parent->children + right_index + KEY_REMOVE_OFFSET;
+        child_src = target_parent->children + right_index + PUSH_OFFSET;
+        size = target_parent->current_size - right_index - KEY_REMOVE_OFFSET;
+        memmove(child_dest,child_src,size);
+
+        target_parent->current_size -= 1;
+        target->current_size += right_child->current_size + 1;
+        free(right_child->children);
+        free(right_child->key);
+        free(right_child);
+        head->node_size -=1;
+
+        if (target_parent == head->root && target_parent->current_size < 1){
+            free(target_parent->children);
+            free(target_parent->key);
+            free(target_parent);
+            head->node_size -= 1;
+            head->root = target;
+            return 0;
+        }
+
+        check_node_underflow(target_parent,head);
+        return 0;
+    }
+    return 1;
 }
 
 int64_t divide_data(uint8_t ** data, uint64_t count){
@@ -432,6 +665,7 @@ void * init_store(uint16_t branching, uint8_t n_processors) {
     tree->root = root;
     tree->key_size = 0;
     tree->node_size = 1;
+    tree->minimum = ceil(branching / 2);
     return tree;
 }
 
@@ -598,7 +832,7 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
 
                 memcpy(output,decrypt_tmp,key_ptr->size);
                 free(decrypt_tmp);
-                
+
                 return 0;
             }
         }
@@ -619,6 +853,7 @@ int btree_delete(uint32_t key, void * helper) {
     header * head = helper;
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
+    uint8_t found = FALSE;
 
     struct info check;
     if(btree_retrieve(key,&check,helper) == 1){
@@ -641,12 +876,12 @@ int btree_delete(uint32_t key, void * helper) {
                 break;
 
             }else{
-
-                return 0;
+                found = TRUE;
+                break;
             }
         }
 
-        if (current_node->status == LEAF){
+        if (found == TRUE || current_node->status == LEAF){
             break;
         }
 
@@ -654,7 +889,22 @@ int btree_delete(uint32_t key, void * helper) {
         next_node = NULL;
     }
 
-    return 1;
+    if (found == FALSE){
+        return 1;
+    }
+    tree_node * target;
+    target = swap_and_remove(current_node,key,head);
+
+    if (target == NULL){
+        return 1;
+    }
+
+    if (target->current_size >= head->minimum){
+        return 0;
+    }
+    head->key_size -=1;
+    check_node_underflow(target,head);
+    return 0;
 }
 
 
