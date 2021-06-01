@@ -689,6 +689,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
 
+    fprintf(stderr, "insert %d \n",key);
     // Check if the key already exists in the tree.
     struct info check;
     if(btree_retrieve(key,&check,helper) == 0){
