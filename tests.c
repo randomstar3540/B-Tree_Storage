@@ -30,37 +30,18 @@ static void test_setup_1(void **state) {
     char * data = "hello";
     uint32_t enc_key[4] = {0};
     btree_insert(9,data,strlen(data),enc_key,0,helper);
-
-    list = NULL;
-    num = btree_export(helper, &list);
-    print_tree(list,num);
-
     btree_insert(10,data,strlen(data),enc_key,100,helper);
-
-    list = NULL;
-    num = btree_export(helper, &list);
-    print_tree(list,num);
-
     btree_insert(12,data,strlen(data),enc_key,100,helper);
-
-    list = NULL;
-    num = btree_export(helper, &list);
-    print_tree(list,num);
-
     btree_insert(3,data,strlen(data),enc_key,100,helper);
-
-    list = NULL;
-    num = btree_export(helper, &list);
-    print_tree(list,num);
-    debug(helper);
-
     btree_insert(7,data,strlen(data),enc_key,100,helper);
-
+    btree_insert(45,data,strlen(data),enc_key,100,helper);
     list = NULL;
     num = btree_export(helper, &list);
     print_tree(list,num);
 
-    btree_insert(45,data,strlen(data),enc_key,100,helper);
+    btree_delete(45,helper);
+
+
 
 //    struct info * found = calloc(1,sizeof(struct info));
 //    btree_retrieve(10,found,helper);
