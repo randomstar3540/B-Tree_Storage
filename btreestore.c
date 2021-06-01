@@ -888,9 +888,7 @@ int btree_delete(uint32_t key, void * helper) {
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
     uint8_t found = FALSE;
-
-    fprintf(stderr,"delete %d\n",key);
-
+    
     struct info check;
     if(btree_retrieve(key,&check,helper) == 1){
         return 1;
