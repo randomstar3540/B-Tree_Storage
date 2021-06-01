@@ -17,3 +17,6 @@ performance: btreestore.c
 tests: btreestore.c
 	$(CC) -c $(TESTFLAGS) $^ -o $(OBJECT)
 	ar rcs $(LIBRARY) $(OBJECT)
+
+run_tests: testS.c btreestore.c
+	$(CC) $(CFLAGS) $^ -o $@ -L"." -lcmocka-static

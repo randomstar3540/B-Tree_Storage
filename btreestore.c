@@ -390,6 +390,9 @@ int check_node_underflow(tree_node * target, header * head){
     uint64_t left_index;
     uint64_t right_index;
 
+    fprintf(stderr,"\n");
+
+
     if (target->current_size >= head->minimum){
         return 0;
     }
@@ -496,6 +499,14 @@ int check_node_underflow(tree_node * target, header * head){
         tree_node ** child_src;
         uint64_t size;
 
+        size = left_child->current_size + CHILD_SIZE_OFFSET;
+        for (int i = 0; i < size; ++i) {
+            tree_node * child_ptr = *(left_child->children + i);
+            if (child_ptr != NULL){
+                child_ptr->parent = target;
+            }
+        }
+
         /*
          * Push the child and key backward
          *
@@ -567,6 +578,14 @@ int check_node_underflow(tree_node * target, header * head){
         tree_node ** child_dest;
         tree_node ** child_src;
         uint64_t size;
+
+        size = right_child->current_size + CHILD_SIZE_OFFSET;
+        for (int i = 0; i < size; ++i) {
+            tree_node * child_ptr = *(right_child->children + i);
+            if (child_ptr != NULL){
+                child_ptr->parent = target;
+            }
+        }
 
         /*
          * Copy keys and children from the right node
