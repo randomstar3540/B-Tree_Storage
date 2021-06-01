@@ -884,6 +884,7 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
 int btree_delete(uint32_t key, void * helper) {
     // Your code here
     // Check if the key already exists in the tree.
+    debug(helper);
     header * head = helper;
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
