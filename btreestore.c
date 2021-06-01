@@ -557,11 +557,12 @@ int check_node_underflow(tree_node * target, header * head){
         head->node_size -=1;
 
         if (target_parent == head->root && target_parent->current_size < 1){
-            free(target_parent->children);
-            free(target_parent->key);
-            free(target_parent);
+            free(head->root->children);
+            free(head->root->key);
+            free(head->root);
             head->node_size -= 1;
             head->root = target;
+            target->parent == NULL;
             return 0;
         }
 
@@ -619,11 +620,12 @@ int check_node_underflow(tree_node * target, header * head){
         head->node_size -=1;
 
         if (target_parent == head->root && target_parent->current_size < 1){
-            free(target_parent->children);
-            free(target_parent->key);
-            free(target_parent);
+            free(head->root->children);
+            free(head->root->key);
+            free(head->root);
             head->node_size -= 1;
             head->root = target;
+            target->parent == NULL;
             return 0;
         }
 
