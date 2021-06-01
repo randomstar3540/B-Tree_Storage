@@ -936,7 +936,6 @@ int btree_delete(uint32_t key, void * helper) {
     if (target->current_size >= head->minimum){
         return 0;
     }
-    head->key_size -=1;
     check_node_underflow(target,head);
     return 0;
 }
