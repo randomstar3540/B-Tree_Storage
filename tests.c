@@ -39,10 +39,10 @@ static void test_setup_1(void **state) {
     num = btree_export(helper, &list);
     print_tree(list,num);
 
-    btree_delete(45,helper);
-    btree_delete(12,helper);
-    btree_delete(10,helper);
+    btree_delete(3,helper);
     debug(helper);
+    btree_delete(7,helper);
+
 
 
 

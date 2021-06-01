@@ -397,7 +397,7 @@ int check_node_underflow(tree_node * target, header * head){
         if(i < target_parent->current_size){
             right_key = *(target_parent->key + i);
             right_child = *(target_parent->children + i + RIGHT_CHILD_OFFSET);
-            right_index = i + KEY_INDEX_OFFSET;
+            right_index = i;
         } else {
             right_key = NULL;
             right_child = NULL;
