@@ -390,9 +390,6 @@ int check_node_underflow(tree_node * target, header * head){
     uint64_t left_index;
     uint64_t right_index;
 
-    fprintf(stderr,"\n");
-
-
     if (target->current_size >= head->minimum){
         return 0;
     }
