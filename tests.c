@@ -40,6 +40,9 @@ static void test_setup_1(void **state) {
     print_tree(list,num);
 
     btree_delete(45,helper);
+    btree_delete(12,helper);
+    btree_delete(10,helper);
+    debug(helper);
 
 
 

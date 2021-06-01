@@ -42,6 +42,7 @@ void debug(void * helper){
     printf("Processor: %d \n",head->processor);
     printf("KEYS: %lu \n",head->key_size);
     printf("NODES: %lu \n",head->node_size);
+    printf("MINIMUM: %d \n",head->minimum);
     printf("=====================END==========================\n");
     dfs_debug(head->root,counter);
     printf("=====================END==========================\n");
@@ -385,16 +386,16 @@ int check_node_underflow(tree_node * target, header * head){
 
 
         if(i > 0){
-            left_key = *(target_parent->key + i);
+            left_key = *(target_parent->key + i - 1);
             left_child = *(target_parent->children + i - LEFT_CHILD_OFFSET);
-            left_index = i;
+            left_index = i - 1;
         } else {
             left_key = NULL;
             left_child = NULL;
         }
 
         if(i < target_parent->current_size){
-            right_key = *(target_parent->key + i + KEY_INDEX_OFFSET);
+            right_key = *(target_parent->key + i);
             right_child = *(target_parent->children + i + RIGHT_CHILD_OFFSET);
             right_index = i + KEY_INDEX_OFFSET;
         } else {
@@ -513,7 +514,7 @@ int check_node_underflow(tree_node * target, header * head){
         *(target->key + left_child->current_size) = left_key;
 
         /*
-         * Push key/child in parent forward
+         * Pull key/child in parent forward
          */
         key_dest = target_parent->key + left_index;
         key_src = target_parent->key + left_index + KEY_REMOVE_OFFSET;
