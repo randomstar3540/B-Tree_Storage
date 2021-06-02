@@ -740,10 +740,8 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
 
-    /*
-     * Mutex Lock
-     */
-    pthread_mutex_lock(&head->mut);
+
+
 
     // Check if the key already exists in the tree.
     struct info check;
@@ -751,6 +749,11 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
         pthread_mutex_unlock(&head->mut);
         return 1;
     }
+
+    /*
+     * Mutex Lock
+     */
+    pthread_mutex_lock(&head->mut);
 
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
@@ -829,7 +832,6 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
     pthread_mutex_lock(&head->mut);
-
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
 
@@ -850,6 +852,7 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
                 found->data = key_ptr->data;
                 found->size = key_ptr->size;
                 encrypt_key_cpy(found->key,key_ptr->key);
+
                 pthread_mutex_unlock(&head->mut);
                 return 0;
             }
@@ -925,13 +928,15 @@ int btree_delete(uint32_t key, void * helper) {
     tree_node * next_node = NULL;
     uint8_t found = FALSE;
 
-    pthread_mutex_lock(&head->mut);
+
 
     struct info check;
     if(btree_retrieve(key,&check,helper) == 1){
         pthread_mutex_unlock(&head->mut);
         return 1;
     }
+
+    pthread_mutex_lock(&head->mut);
 
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
