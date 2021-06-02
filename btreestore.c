@@ -198,36 +198,49 @@ int node_remove_key(tree_node * node, uint32_t key, header * head){
 tree_node * swap_and_remove(tree_node * node, uint32_t key, header * head){
     key_node * key_ptr;
     key_node * max_key_ptr;
+    tree_node * max_child;
+    tree_node * child_ptr;
     tree_node * left_child;
     tree_node * target;
     uint64_t max_key_index;
 
-    if (node->status != LEAF){
-        for(int i = 0; i < node->current_size; i++){
 
-            key_ptr = *(node->key + i);
-            left_child = *(node->children + i);
 
-            if(key_ptr->key_val == key){
-                if (left_child->current_size == 0){
-                    return NULL;
-                }
-
-                max_key_index = left_child->current_size - CHILD_SWAP_OFFSET;
-                max_key_ptr = *(left_child->key + max_key_index);
-
-                *(left_child->key + max_key_index) = key_ptr;
-                *(node->key + i) = max_key_ptr;
-
-                target = swap_and_remove(left_child, key, head);
-                return target;
-            }
-        }
-        return NULL;
+    if (node->status == LEAF){
+        node_remove_key(node, key, head);
+        return node;
     }
 
-    node_remove_key(node, key, head);
-    return node;
+
+    for(int i = 0; i < node->current_size; i++){
+        key_ptr = *(node->key + i);
+        left_child = *(node->children + i);
+
+        if(key_ptr->key_val == key){
+            max_child = left_child;
+            while (max_child->status != LEAF){
+                child_ptr = NULL;
+                for (int j = 0; j < max_child->current_size + 1; j ++){
+                    if (*(max_child->children + j)!= NULL){
+                        child_ptr = *(max_child->children + j);
+                    }
+                }
+                if (child_ptr == NULL){
+                    return NULL;
+                }
+                max_child = child_ptr;
+            }
+
+            max_key_ptr = *(max_child->key + max_child->current_size -1);
+            max_key_index = max_child->current_size -1;
+
+            *(max_child->key + max_key_index) = key_ptr;
+            *(node->key + i) = max_key_ptr;
+            node_remove_key(max_child, key, head);
+            return max_child;
+        }
+    }
+    return NULL;
 }
 
 
@@ -379,6 +392,7 @@ int check_node_overflow(tree_node * node, header * head){
 }
 
 int check_node_underflow(tree_node * target, header * head){
+
     tree_node * target_parent;
     target_parent = target->parent;
     tree_node * child;
@@ -593,10 +607,9 @@ int check_node_underflow(tree_node * target, header * head){
                right_child->key,size);
         size = sizeof(tree_node*) *
                (right_child->current_size + KEY_REMOVE_OFFSET);
-        memcpy(target->children+target->current_size,
+        memcpy(target->children+target->current_size + 1,
                right_child->children,size);
         *(target->key+target->current_size) = right_key;
-
         /*
          * Push key/child in parent forward
          */
@@ -886,7 +899,6 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
 int btree_delete(uint32_t key, void * helper) {
     // Your code here
     // Check if the key already exists in the tree.
-    debug(helper);
     header * head = helper;
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
@@ -935,7 +947,6 @@ int btree_delete(uint32_t key, void * helper) {
     if (target == NULL){
         return 1;
     }
-
     if (target->current_size >= head->minimum){
         return 0;
     }

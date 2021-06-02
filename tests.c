@@ -66,7 +66,6 @@ static void test_setup_1(void **state) {
 //    num = btree_export(helper, &list);
 //    print_tree(list,num);
 
-//    debug(helper);
 
 
 
@@ -76,9 +75,9 @@ static void test_setup_1(void **state) {
 //    struct info * found = calloc(1,sizeof(struct info));
 //    btree_retrieve(10,found,helper);
 //
-//    list = NULL;
-//    num = btree_export(helper, &list);
-//    print_tree(list,num);
+    list = NULL;
+    num = btree_export(helper, &list);
+    print_tree(list,num);
 //
 //    printf("SIZE:%d\n",found->size);
 //    printf("DATA:%s\n", found->data);
