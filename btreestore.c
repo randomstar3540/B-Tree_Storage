@@ -409,6 +409,10 @@ int check_node_underflow(tree_node * target, header * head){
         return 0;
     }
 
+    if (target_parent == NULL){
+        return 0;
+    }
+
     for (int i = 0; i < target_parent->current_size + CHILD_SIZE_OFFSET; i++){
         child = *(target_parent->children + i);
 
