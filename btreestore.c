@@ -828,6 +828,7 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
     header * head = helper;
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
+    pthread_mutex_lock(&head->mut);
 
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
@@ -849,6 +850,7 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
                 found->data = key_ptr->data;
                 found->size = key_ptr->size;
                 encrypt_key_cpy(found->key,key_ptr->key);
+                pthread_mutex_unlock(&head->mut);
                 return 0;
             }
         }
@@ -860,6 +862,7 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
         current_node = next_node;
         next_node = NULL;
     }
+    pthread_mutex_unlock(&head->mut);
     return 1;
 }
 
