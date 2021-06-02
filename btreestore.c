@@ -930,11 +930,6 @@ int btree_delete(uint32_t key, void * helper) {
     tree_node * next_node = NULL;
     uint8_t found = FALSE;
 
-    if (key == 10202 || key == 20418){
-        fprintf(stderr,"deleted!\n");
-    }
-
-
     struct info check;
     if(btree_retrieve(key,&check,helper) == 1){
         pthread_mutex_unlock(&head->mut);
