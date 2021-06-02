@@ -700,8 +700,6 @@ void * init_store(uint16_t branching, uint8_t n_processors) {
     header * tree = (header *)malloc(sizeof(header));
     memset(tree,0,sizeof(header));
 
-    fprintf(stderr,"init\n");
-
     if(tree == NULL){
         //Check if malloc failed
         return NULL;
@@ -727,7 +725,6 @@ void * init_store(uint16_t branching, uint8_t n_processors) {
 void close_store(void * helper) {
     header * head = helper;
 
-    fprintf(stderr,"close\n");
 
     dfs_free(head->root);
     pthread_mutex_destroy(&head->mut);
@@ -743,8 +740,6 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     header * head = helper;
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
-
-    fprintf(stderr,"insert %d\n",key);
 
 
     // Check if the key already exists in the tree.
@@ -837,8 +832,6 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
     tree_node * next_node = NULL;
     pthread_mutex_lock(&head->mut);
 
-    fprintf(stderr,"retrieve %d\n",key);
-
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
 
@@ -881,7 +874,6 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
 
-    fprintf(stderr,"decrypt %d\n",key);
 
     pthread_mutex_lock(&head->mut);
 
@@ -926,7 +918,7 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
         next_node = NULL;
     }
     pthread_mutex_unlock(&head->mut);
-    return 1;
+    return 2;
 }
 
 int btree_delete(uint32_t key, void * helper) {
@@ -937,7 +929,6 @@ int btree_delete(uint32_t key, void * helper) {
     tree_node * next_node = NULL;
     uint8_t found = FALSE;
 
-    fprintf(stderr,"delete %d\n",key);
 
     struct info check;
     if(btree_retrieve(key,&check,helper) == 1){
@@ -1029,8 +1020,6 @@ void dfs_export(tree_node * node, struct node ** list, uint64_t* counter){
 uint64_t btree_export(void * helper, struct node ** list) {
     header * head = helper;
     *list = calloc(head->node_size,sizeof(struct node));
-
-    fprintf(stderr,"export\n");
 
     if(*list == NULL){
         return 0;
