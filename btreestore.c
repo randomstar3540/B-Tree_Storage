@@ -877,7 +877,7 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
 
     pthread_mutex_lock(&head->mut);
 
-    while (current_node != NULL || current_node->current_size > 0){
+    while (current_node != NULL){
         key_node * key_ptr;
 
         //on default, pick the smallest child
@@ -918,7 +918,7 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
         next_node = NULL;
     }
     pthread_mutex_unlock(&head->mut);
-    return 2;
+    return 1;
 }
 
 int btree_delete(uint32_t key, void * helper) {
