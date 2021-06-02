@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <pthread.h>
 
 
 #include "btreestore.h"
@@ -715,6 +716,7 @@ void * init_store(uint16_t branching, uint8_t n_processors) {
     tree->key_size = 0;
     tree->node_size = 1;
     tree->minimum = ceil((branching-1) / 2);
+    pthread_mutex_init(&tree->mut,NULL);
     return tree;
 }
 
@@ -724,6 +726,7 @@ void close_store(void * helper) {
     header * head = helper;
 
     dfs_free(head->root);
+    pthread_mutex_destroy(&head->mut);
     free(head);
 }
 
@@ -737,9 +740,15 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
 
+    /*
+     * Mutex Lock
+     */
+    pthread_mutex_lock(&head->mut);
+
     // Check if the key already exists in the tree.
     struct info check;
     if(btree_retrieve(key,&check,helper) == 0){
+        pthread_mutex_unlock(&head->mut);
         return 1;
     }
 
@@ -760,6 +769,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
 
             }else{
                 // Check if the key already exists in the tree.
+                pthread_mutex_unlock(&head->mut);
                 return 1;
             }
         }
@@ -773,6 +783,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     }
 
     if(current_node == NULL){
+        pthread_mutex_unlock(&head->mut);
         return 1;
     }
 
@@ -781,6 +792,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     void * data = malloc(count);
 
     if (new_key == NULL || data == NULL){
+        pthread_mutex_unlock(&head->mut);
         return 1;
     }
 
@@ -790,6 +802,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     int64_t chunk_size = divide_data((uint8_t **)&data,count);
 
     if(chunk_size == -1){
+        pthread_mutex_unlock(&head->mut);
         return 1;
     }
 
@@ -807,6 +820,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
 
     head->key_size += 1;
     check_node_overflow(current_node,head);
+    pthread_mutex_unlock(&head->mut);
     return 0;
 }
 
@@ -854,6 +868,8 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
 
+    pthread_mutex_lock(&head->mut);
+
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
 
@@ -873,6 +889,7 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
                 void * decrypt_tmp = malloc(key_ptr->chunk_size * BITS_BYTE);
 
                 if(decrypt_tmp == NULL){
+                    pthread_mutex_unlock(&head->mut);
                     return 1;
                 }
 
@@ -881,7 +898,7 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
 
                 memcpy(output,decrypt_tmp,key_ptr->size);
                 free(decrypt_tmp);
-
+                pthread_mutex_unlock(&head->mut);
                 return 0;
             }
         }
@@ -893,6 +910,7 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
         current_node = next_node;
         next_node = NULL;
     }
+    pthread_mutex_unlock(&head->mut);
     return 1;
 }
 
@@ -904,8 +922,11 @@ int btree_delete(uint32_t key, void * helper) {
     tree_node * next_node = NULL;
     uint8_t found = FALSE;
 
+    pthread_mutex_lock(&head->mut);
+
     struct info check;
     if(btree_retrieve(key,&check,helper) == 1){
+        pthread_mutex_unlock(&head->mut);
         return 1;
     }
 
@@ -939,18 +960,22 @@ int btree_delete(uint32_t key, void * helper) {
     }
 
     if (found == FALSE){
+        pthread_mutex_unlock(&head->mut);
         return 1;
     }
     tree_node * target;
     target = swap_and_remove(current_node,key,head);
 
     if (target == NULL){
+        pthread_mutex_unlock(&head->mut);
         return 1;
     }
     if (target->current_size >= head->minimum){
+        pthread_mutex_unlock(&head->mut);
         return 0;
     }
     check_node_underflow(target,head);
+    pthread_mutex_unlock(&head->mut);
     return 0;
 }
 
@@ -991,9 +1016,11 @@ uint64_t btree_export(void * helper, struct node ** list) {
     if(*list == NULL){
         return 0;
     }
+    pthread_mutex_lock(&head->mut);
     uint64_t counter_num = 0;
     uint64_t * counter = &counter_num;
     dfs_export(head->root,list,counter);
+    pthread_mutex_unlock(&head->mut);
 
 
     return head->node_size;

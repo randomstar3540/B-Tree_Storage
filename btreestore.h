@@ -66,6 +66,7 @@ typedef struct header{
     struct tree_node * root;
     uint64_t key_size;
     uint64_t node_size;
+    pthread_mutex_t mut;
 }header;
 
 void * init_store(uint16_t branching, uint8_t n_processors);
