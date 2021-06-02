@@ -938,7 +938,7 @@ int btree_delete(uint32_t key, void * helper) {
 
     pthread_mutex_lock(&head->mut);
 
-    while (current_node != NULL || current_node->current_size > 0){
+    while (current_node != NULL){
         key_node * key_ptr;
 
         //on default, pick the smallest child
