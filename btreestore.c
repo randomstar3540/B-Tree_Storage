@@ -917,6 +917,8 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
         current_node = next_node;
         next_node = NULL;
     }
+    fprintf(stderr,"decrypt: %d \n",key);
+    debug(helper);
     pthread_mutex_unlock(&head->mut);
     return 1;
 }
