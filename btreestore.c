@@ -705,6 +705,42 @@ void dfs_free(tree_node * node){
     free(node);
 }
 
+int check_exist(uint32_t key, void * helper) {
+    header * head = helper;
+    tree_node * current_node = head->root;
+    tree_node * next_node = NULL;
+
+
+    while (current_node != NULL || current_node->current_size > 0){
+        key_node * key_ptr;
+
+        //on default, pick the smallest child
+        next_node = *(current_node->children);
+
+        for(int i = 0; i < current_node->current_size; i++){
+            key_ptr = *(current_node->key + i);
+
+            if (key_ptr->key_val < key){
+                next_node = *(current_node->children + i + 1);
+
+            }else if (key_ptr->key_val > key){
+                break;
+
+            }else{
+                return 0;
+            }
+        }
+
+        if (current_node->status == LEAF){
+            break;
+        }
+
+        current_node = next_node;
+        next_node = NULL;
+    }
+    return 1;
+}
+
 /*
  * Initialize the b_tree data structure
  * Malloc a block of memory to store the config variables
@@ -733,7 +769,7 @@ void * init_store(uint16_t branching, uint8_t n_processors) {
     tree->key_size = 0;
     tree->node_size = 1;
     tree->minimum = ceil((branching-1) / 2);
-    pthread_rwlock_init(&tree->lock,NULL);
+    pthread_mutex_init(&tree->lock,NULL);
     return tree;
 }
 
@@ -744,7 +780,7 @@ void close_store(void * helper) {
 
 
     dfs_free(head->root);
-    pthread_rwlock_destroy(&head->lock);
+    pthread_mutex_destroy(&head->lock);
     free(head);
 }
 
@@ -785,18 +821,19 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
 
     encrypt_key_cpy(new_key->key, encryption_key);
 
+    pthread_mutex_lock(&head->lock);
 
     // Check if the key already exists in the tree.
-    struct info check;
-    if(btree_retrieve(key,&check,helper) == 0){
+    if(check_exist(key,helper) == 0){
         free_key(new_key);
+        pthread_mutex_unlock(&head->lock);
         return 1;
     }
 
     /*
-     * rwlock Lock
+     * mutex Lock
      */
-    pthread_rwlock_wrlock(&head->lock);
+
 
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
@@ -815,7 +852,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
 
             }else{
                 // Check if the key already exists in the tree.
-                pthread_rwlock_unlock(&head->lock);
+                pthread_mutex_unlock(&head->lock);
                 return 1;
             }
         }
@@ -829,7 +866,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     }
 
     if(current_node == NULL){
-        pthread_rwlock_unlock(&head->lock);
+        pthread_mutex_unlock(&head->lock);
         return 1;
     }
 
@@ -838,7 +875,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     head->key_size += 1;
     check_node_overflow(current_node,head);
 
-    pthread_rwlock_unlock(&head->lock);
+    pthread_mutex_unlock(&head->lock);
     return 0;
 }
 
@@ -847,7 +884,7 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
 
-    pthread_rwlock_rdlock(&head->lock);
+    pthread_mutex_lock(&head->lock);
 
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
@@ -869,7 +906,7 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
                 found->data = key_ptr->data;
                 found->size = key_ptr->size;
                 encrypt_key_cpy(found->key,key_ptr->key);
-                pthread_rwlock_unlock(&head->lock);
+                pthread_mutex_unlock(&head->lock);
                 return 0;
             }
         }
@@ -881,16 +918,18 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
         current_node = next_node;
         next_node = NULL;
     }
-    pthread_rwlock_unlock(&head->lock);
+    pthread_mutex_unlock(&head->lock);
     return 1;
 }
+
+
 
 int btree_decrypt(uint32_t key, void * output, void * helper) {
     header * head = helper;
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
 
-    pthread_rwlock_rdlock(&head->lock);
+    pthread_mutex_lock(&head->lock);
 
     while (current_node != NULL){
         key_node * key_ptr;
@@ -914,12 +953,12 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
                 void * decrypt_tmp = malloc(key_ptr->chunk_size * BITS_BYTE);
                 void * data_tmp = malloc(key_ptr->chunk_size * BITS_BYTE);
                 if(decrypt_tmp == NULL){
-                    pthread_rwlock_unlock(&head->lock);
+                    pthread_mutex_unlock(&head->lock);
                     return 1;
                 }
                 if(data_tmp == NULL){
                     free(decrypt_tmp);
-                    pthread_rwlock_unlock(&head->lock);
+                    pthread_mutex_unlock(&head->lock);
                     return 1;
                 }
                 uint32_t key_tmp[4];
@@ -930,7 +969,7 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
                 memcpy(data_tmp,key_ptr->data,chunk_size *8);
                 encrypt_key_cpy(key_tmp,key_ptr->key);
 
-                pthread_rwlock_unlock(&head->lock);
+                pthread_mutex_unlock(&head->lock);
 
                 decrypt_tea_ctr(data_tmp,key_tmp,nonce,
                                 decrypt_tmp,chunk_size);
@@ -950,7 +989,7 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
         current_node = next_node;
         next_node = NULL;
     }
-    pthread_rwlock_unlock(&head->lock);
+    pthread_mutex_unlock(&head->lock);
     return 1;
 }
 
@@ -962,12 +1001,12 @@ int btree_delete(uint32_t key, void * helper) {
     tree_node * next_node = NULL;
     uint8_t found = FALSE;
 
-    struct info check;
-    if(btree_retrieve(key,&check,helper) == 1){
+    pthread_mutex_lock(&head->lock);
+
+    if(check_exist(key,helper) == 1){
+        pthread_mutex_unlock(&head->lock);
         return 1;
     }
-
-    pthread_rwlock_wrlock(&head->lock);
 
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
@@ -999,22 +1038,22 @@ int btree_delete(uint32_t key, void * helper) {
     }
 
     if (found == FALSE){
-        pthread_rwlock_unlock(&head->lock);
+        pthread_mutex_unlock(&head->lock);
         return 1;
     }
     tree_node * target;
     target = swap_and_remove(current_node,key,head);
 
     if (target == NULL){
-        pthread_rwlock_unlock(&head->lock);
+        pthread_mutex_unlock(&head->lock);
         return 1;
     }
     if (target->current_size >= head->minimum){
-        pthread_rwlock_unlock(&head->lock);
+        pthread_mutex_unlock(&head->lock);
         return 0;
     }
     check_node_underflow(target,head);
-    pthread_rwlock_unlock(&head->lock);
+    pthread_mutex_unlock(&head->lock);
     return 0;
 }
 
@@ -1060,9 +1099,9 @@ uint64_t btree_export(void * helper, struct node ** list) {
     uint64_t counter_num = 0;
     uint64_t * counter = &counter_num;
 
-    pthread_rwlock_rdlock(&head->lock);
+    pthread_mutex_lock(&head->lock);
     dfs_export(head->root,list,counter);
-    pthread_rwlock_unlock(&head->lock);
+    pthread_mutex_unlock(&head->lock);
 
     return head->node_size;
 }

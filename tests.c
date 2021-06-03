@@ -1069,7 +1069,7 @@ static void test_setup_2(void **state) {
     btree_delete(12646,helper);
     btree_delete(13649,helper);
     btree_delete(2727,helper);
-    btree_delete(2837,helper);
+//    btree_delete(2837,helper);
 
     close_store(helper);
 }
