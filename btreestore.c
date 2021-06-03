@@ -12,14 +12,12 @@ void encrypt_key_cpy(uint32_t* key_to ,uint32_t encryption_key[4]){
         key_to[i] = encryption_key[i];
     }
 }
-void dfs_debug(tree_node * node, uint64_t* counter){
-    if (node == NULL){
-        return;
-    }
+
+void print_node(tree_node * node, uint64_t counter){
     key_node * key_ptr;
     printf("NODE: status %d, SIZE: %d\n",node->status, node->current_size);
     printf("ADDR:%p\n",node);
-    printf("CONT:%lu\n",*counter);
+    printf("CONT:%lu\n",counter);
     for (int i = 0; i < node->current_size; ++i) {
         key_ptr = *(node->key + i);
         printf("Key :%d VALUE :%lu \n",i, key_ptr->key_val);
@@ -30,6 +28,13 @@ void dfs_debug(tree_node * node, uint64_t* counter){
     }
     printf("Parent %p \n",node->parent);
     printf("\n\n");
+}
+
+void dfs_debug(tree_node * node, uint64_t* counter){
+    if (node == NULL){
+        return;
+    }
+    print_node(node,*counter);
     for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
         dfs_debug(*(node->children + i), counter);
     }
@@ -594,7 +599,7 @@ int check_node_underflow(tree_node * target, header * head){
             free(head->root);
             head->node_size -= 1;
             head->root = target;
-            target->parent == NULL;
+            target->parent = NULL;
             return 0;
         }
 
@@ -629,7 +634,7 @@ int check_node_underflow(tree_node * target, header * head){
                right_child->children,size);
         *(target->key+target->current_size) = right_key;
         /*
-         * Push key/child in parent forward
+         * Pull key/child in parent forward
          */
         key_dest = target_parent->key + right_index;
         key_src = target_parent->key + right_index + KEY_REMOVE_OFFSET;
@@ -651,12 +656,20 @@ int check_node_underflow(tree_node * target, header * head){
         head->node_size -=1;
 
         if (target_parent == head->root && target_parent->current_size < 1){
+            for (int i = 0; i < head->root->current_size + 1; i ++){
+                child = *(head->root->children + i);
+                if (child != NULL){
+                    printf("P: %p\n",child->parent);
+                }
+                printf("\n\n");
+            }
             free(head->root->children);
             free(head->root->key);
             free(head->root);
             head->node_size -= 1;
             head->root = target;
-            target->parent == NULL;
+            target->parent = NULL;
+
             return 0;
         }
 
@@ -996,13 +1009,14 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
 int btree_delete(uint32_t key, void * helper) {
     // Your code here
     // Check if the key already exists in the tree.
+
     header * head = helper;
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
     uint8_t found = FALSE;
 
     pthread_mutex_lock(&head->lock);
-
+    
     if(check_exist(key,helper) == 1){
         pthread_mutex_unlock(&head->lock);
         return 1;
