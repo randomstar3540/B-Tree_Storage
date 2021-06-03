@@ -465,6 +465,7 @@ int check_node_underflow(tree_node * target, header * head){
         node_add_key(target,left_key,*(target->children),head);
         *(target->children) = max_child;
         *(target_parent->key + left_index) = max_key_ptr;
+        max_child->parent = target;
         left_child->current_size -= 1;
         return 0;
     }
@@ -505,6 +506,7 @@ int check_node_underflow(tree_node * target, header * head){
 
         node_add_key(target,right_key,min_child,head);
         *(target_parent->key + right_index) = min_key_ptr;
+        min_child->parent = target;
         right_child->current_size -=1;
         return 0;
     }
@@ -558,16 +560,20 @@ int check_node_underflow(tree_node * target, header * head){
         /*
          * Pull key/child in parent forward
          */
+        printf("i: %lu, c: %d\n",left_index,target_parent->current_size);
         key_dest = target_parent->key + left_index;
         key_src = target_parent->key + left_index + KEY_REMOVE_OFFSET;
         size = sizeof(key_node*) *
-               target_parent->current_size - left_index - KEY_REMOVE_OFFSET;
+                (target_parent->current_size - left_index - KEY_REMOVE_OFFSET);
+
+        printf("size: %lu posrc: %p\n",size,key_src);
+        printf("podest: %p pokey: %p\n",key_dest,target_parent->key);
         memmove(key_dest,key_src,size);
 
         child_dest = target_parent->children + left_index;
         child_src = target_parent->children + left_index + KEY_REMOVE_OFFSET;
         size = sizeof(tree_node*) *
-               target_parent->current_size - left_index;
+                (target_parent->current_size - left_index);
         memmove(child_dest,child_src,size);
 
         target_parent->current_size -= 1;
@@ -623,13 +629,13 @@ int check_node_underflow(tree_node * target, header * head){
         key_dest = target_parent->key + right_index;
         key_src = target_parent->key + right_index + KEY_REMOVE_OFFSET;
         size = sizeof(key_node*) *
-               target_parent->current_size - right_index - KEY_REMOVE_OFFSET;
+                (target_parent->current_size - right_index - KEY_REMOVE_OFFSET);
         memmove(key_dest,key_src,size);
 
         child_dest = target_parent->children + right_index + KEY_REMOVE_OFFSET;
         child_src = target_parent->children + right_index + PUSH_OFFSET;
         size = sizeof(tree_node*) *
-               target_parent->current_size - right_index - KEY_REMOVE_OFFSET;
+                (target_parent->current_size - right_index - KEY_REMOVE_OFFSET);
         memmove(child_dest,child_src,size);
 
         target_parent->current_size -= 1;
@@ -950,6 +956,8 @@ int btree_delete(uint32_t key, void * helper) {
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
     uint8_t found = FALSE;
+
+    printf("delete: %d\n",key);
 
     struct info check;
     if(btree_retrieve(key,&check,helper) == 1){
