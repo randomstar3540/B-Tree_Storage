@@ -465,7 +465,9 @@ int check_node_underflow(tree_node * target, header * head){
         node_add_key(target,left_key,*(target->children),head);
         *(target->children) = max_child;
         *(target_parent->key + left_index) = max_key_ptr;
-        max_child->parent = target;
+        if(max_child != NULL){
+            max_child->parent = target;
+        }
         left_child->current_size -= 1;
         return 0;
     }
@@ -506,7 +508,9 @@ int check_node_underflow(tree_node * target, header * head){
 
         node_add_key(target,right_key,min_child,head);
         *(target_parent->key + right_index) = min_key_ptr;
-        min_child->parent = target;
+        if (min_child != NULL){
+            min_child->parent = target;
+        }
         right_child->current_size -=1;
         return 0;
     }
