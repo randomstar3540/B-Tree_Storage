@@ -890,8 +890,6 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
 
-    pthread_mutex_lock(&head->lock);
-
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
 
@@ -912,7 +910,6 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
                 found->data = key_ptr->data;
                 found->size = key_ptr->size;
                 encrypt_key_cpy(found->key,key_ptr->key);
-                pthread_mutex_unlock(&head->lock);
                 return 0;
             }
         }
@@ -924,7 +921,6 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
         current_node = next_node;
         next_node = NULL;
     }
-    pthread_mutex_unlock(&head->lock);
     return 1;
 }
 
@@ -934,8 +930,6 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
     header * head = helper;
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
-
-    pthread_mutex_lock(&head->lock);
 
     while (current_node != NULL){
         key_node * key_ptr;
@@ -959,12 +953,10 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
                 void * decrypt_tmp = malloc(key_ptr->chunk_size * BITS_BYTE);
                 void * data_tmp = malloc(key_ptr->chunk_size * BITS_BYTE);
                 if(decrypt_tmp == NULL){
-                    pthread_mutex_unlock(&head->lock);
                     return 1;
                 }
                 if(data_tmp == NULL){
                     free(decrypt_tmp);
-                    pthread_mutex_unlock(&head->lock);
                     return 1;
                 }
                 uint32_t key_tmp[4];
@@ -975,7 +967,6 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
                 memcpy(data_tmp,key_ptr->data,chunk_size *8);
                 encrypt_key_cpy(key_tmp,key_ptr->key);
 
-                pthread_mutex_unlock(&head->lock);
 
                 decrypt_tea_ctr(data_tmp,key_tmp,nonce,
                                 decrypt_tmp,chunk_size);
@@ -995,7 +986,6 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
         current_node = next_node;
         next_node = NULL;
     }
-    pthread_mutex_unlock(&head->lock);
     return 1;
 }
 
