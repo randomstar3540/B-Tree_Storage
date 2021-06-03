@@ -656,13 +656,6 @@ int check_node_underflow(tree_node * target, header * head){
         head->node_size -=1;
 
         if (target_parent == head->root && target_parent->current_size < 1){
-            for (int i = 0; i < head->root->current_size + 1; i ++){
-                child = *(head->root->children + i);
-                if (child != NULL){
-                    printf("P: %p\n",child->parent);
-                }
-                printf("\n\n");
-            }
             free(head->root->children);
             free(head->root->key);
             free(head->root);
@@ -1021,7 +1014,7 @@ int btree_delete(uint32_t key, void * helper) {
         pthread_mutex_unlock(&head->lock);
         return 1;
     }
-    
+
 
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
