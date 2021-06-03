@@ -568,14 +568,11 @@ int check_node_underflow(tree_node * target, header * head){
         /*
          * Pull key/child in parent forward
          */
-        printf("i: %lu, c: %d\n",left_index,target_parent->current_size);
         key_dest = target_parent->key + left_index;
         key_src = target_parent->key + left_index + KEY_REMOVE_OFFSET;
         size = sizeof(key_node*) *
                 (target_parent->current_size - left_index - KEY_REMOVE_OFFSET);
 
-        printf("size: %lu posrc: %p\n",size,key_src);
-        printf("podest: %p pokey: %p\n",key_dest,target_parent->key);
         memmove(key_dest,key_src,size);
 
         child_dest = target_parent->children + left_index;
@@ -964,8 +961,6 @@ int btree_delete(uint32_t key, void * helper) {
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
     uint8_t found = FALSE;
-
-    printf("delete: %d\n",key);
 
     struct info check;
     if(btree_retrieve(key,&check,helper) == 1){
