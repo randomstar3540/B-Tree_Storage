@@ -1016,11 +1016,12 @@ int btree_delete(uint32_t key, void * helper) {
     uint8_t found = FALSE;
 
     pthread_mutex_lock(&head->lock);
-    
+
     if(check_exist(key,helper) == 1){
         pthread_mutex_unlock(&head->lock);
         return 1;
     }
+    
 
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
