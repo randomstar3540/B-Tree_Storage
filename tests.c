@@ -21,7 +21,54 @@ void print_tree(struct node * list, uint64_t num){
     printf("\n");
 }
 
-static void test_setup_1(void **state) {
+static int compare_file_info(char * filename){
+
+    //open files
+    FILE * expected = fopen(filename,"r");
+    FILE * output = fopen("test/out","r");
+    if (expected == NULL || output == NULL){
+        fclose(expected);
+        fclose(output);
+        return -1;
+    }
+
+    //compare size
+    fseek(expected, 0L, SEEK_END);
+    int64_t expected_size = ftell(expected);
+    fseek(expected, 0L, SEEK_SET);
+
+    fseek(output, 0L, SEEK_END);
+    int64_t output_size = ftell(output);
+    fseek(output, 0L, SEEK_SET);
+
+    if(expected_size != output_size){
+        fclose(expected);
+        fclose(output);
+        return -1;
+    }
+
+    int e;//expected
+    int o;//output
+    while ((e = getc(expected)) != EOF && (o = getc(output)) != EOF){
+        if(e != o){
+            fclose(expected);
+            fclose(output);
+            return -1;
+        }
+    }
+    fclose(expected);
+    fclose(output);
+    return 0;
+}
+
+void free_list(struct node * list, uint64_t num){
+    for (int i = 0; i < num; i++){
+        free((list + i)->keys);
+    }
+    free(list);
+}
+
+static void test_small_branching_1(void **state) {
     struct node * list = NULL;
     uint64_t num;
 
@@ -45,14 +92,18 @@ static void test_setup_1(void **state) {
     btree_delete(2,helper);
     btree_delete(5,helper);
 
-    //    list = NULL;
-    //    num = btree_export(helper, &list);
-    //    print_tree(list,num);
+    list = NULL;
+    num = btree_export(helper, &list);
+
+    freopen("test/small_branching_1.out","w",stdout);
+    print_tree(list,num);
+    freopen("/dev/tty","w",stdout);
+    free_list(list,num);
 
     close_store(helper);
 }
 
-static void test_setup_2(void **state) {
+static void test_small_branching_2(void **state) {
     struct node *list = NULL;
     uint64_t num;
 
@@ -61,10 +112,99 @@ static void test_setup_2(void **state) {
     char *data = "hello";
     uint32_t enc_key[4] = {0};
 
+    assert_int_equal(btree_insert(6296,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(2054,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(2054,helper),0);
+    assert_int_equal(btree_insert(10707,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(373,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(10707,helper),0);
+    assert_int_equal(btree_insert(2569,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(18837,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(18837,helper),0);
+    assert_int_equal(btree_insert(4992,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(2979,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(2979,helper),0);
+    assert_int_equal(btree_insert(12939,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(198,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(12939,helper),0);
+    assert_int_equal(btree_insert(17780,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(6280,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(198,helper),0);
+    assert_int_equal(btree_insert(2659,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(6303,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(2569,helper),0);
+    assert_int_equal(btree_insert(5689,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(12458,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(6303,helper),0);
+    assert_int_equal(btree_insert(6857,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(19391,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(19391,helper),0);
+    assert_int_equal(btree_insert(9838,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(6683,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(2659,helper),0);
+    assert_int_equal(btree_insert(9930,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(11198,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(12458,helper),0);
+    assert_int_equal(btree_insert(12737,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(15320,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(5689,helper),0);
+    assert_int_equal(btree_insert(2368,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(9766,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(12737,helper),0);
+    assert_int_equal(btree_insert(7902,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(15157,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(4992,helper),0);
+    assert_int_equal(btree_insert(8796,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(4590,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(6857,helper),0);
+    assert_int_equal(btree_insert(12998,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(14130,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(14130,helper),0);
+    assert_int_equal(btree_insert(14494,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(10957,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(9766,helper),0);
+    assert_int_equal(btree_insert(9518,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(13735,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(17780,helper),0);
+    assert_int_equal(btree_insert(4666,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(11187,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_delete(12998,helper),0);
+    assert_int_equal(btree_insert(19645,data,strlen(data),enc_key,0,helper),0);
+    assert_int_equal(btree_insert(9349,data,strlen(data),enc_key,0,helper),0);
+
+    assert_int_equal(btree_delete(9930,helper),0);
+    assert_int_equal(btree_delete(6296,helper),0);
+    assert_int_equal(btree_delete(13735,helper),0);
+    assert_int_equal(btree_delete(6683,helper),0);
+    assert_int_equal(btree_delete(11198,helper),0);
+    assert_int_equal(btree_delete(9349,helper),0);
+    assert_int_equal(btree_delete(373,helper),0);
+    assert_int_equal(btree_delete(15157,helper),0);
+    assert_int_equal(btree_delete(7902,helper),0);
+    assert_int_equal(btree_delete(10957,helper),0);
+    assert_int_equal(btree_delete(6280,helper),0);
+    assert_int_equal(btree_delete(9838,helper),0);
+    assert_int_equal(btree_delete(15320,helper),0);
+    assert_int_equal(btree_delete(2368,helper),0);
+    assert_int_equal(btree_delete(8796,helper),0);
+    assert_int_equal(btree_delete(14494,helper),0);
+    assert_int_equal(btree_delete(4666,helper),0);
+    assert_int_equal(btree_delete(19645,helper),0);
+    assert_int_equal(btree_delete(11187,helper),0);
+    assert_int_equal(btree_delete(9518,helper),0);
+
+    list = NULL;
+    num = btree_export(helper, &list);
+
+    freopen("test/small_branching_2.out","w",stdout);
+    print_tree(list,num);
+    freopen("/dev/tty","w",stdout);
+    free_list(list,num);
+
     close_store(helper);
 }
 
-static void test_setup_3(void **state) {
+static void test_large_branching_1(void **state) {
     struct node * list = NULL;
     uint64_t num;
     void * helper = init_store(8, 4);
@@ -123,10 +263,18 @@ static void test_setup_3(void **state) {
     assert_int_equal(btree_delete(6954,helper),0);
     assert_int_equal(btree_delete(18908,helper),0);
 
+    list = NULL;
+    num = btree_export(helper, &list);
+
+    freopen("test/large_branching_2.out","w",stdout);
+    print_tree(list,num);
+    freopen("/dev/tty","w",stdout);
+    free_list(list,num);
+
     close_store(helper);
     free(buffer);
 }
-static void test_setup_4(void **state) {
+static void test_large_branching_2(void **state) {
     struct node * list = NULL;
     uint64_t num;
 
@@ -2642,7 +2790,7 @@ static void test_setup_4(void **state) {
     free(buffer);
 }
 
-static void test_setup_5(void **state) {
+static void test_large_correctness_1(void **state) {
     struct node * list = NULL;
     uint64_t num;
 
@@ -3060,11 +3208,11 @@ int main() {
      * Constructing Unit Test
      */
     const struct CMUnitTest tests[] = {
-            cmocka_unit_test(test_setup_1),
-            cmocka_unit_test(test_setup_2),
-            cmocka_unit_test(test_setup_3),
-            cmocka_unit_test(test_setup_4),
-            cmocka_unit_test(test_setup_5),
+            cmocka_unit_test(test_small_branching_1),
+            cmocka_unit_test(test_small_branching_2),
+            cmocka_unit_test(test_large_branching_1),
+            cmocka_unit_test(test_large_branching_2),
+            cmocka_unit_test(test_large_correctness_1),
     };
 
     /*
