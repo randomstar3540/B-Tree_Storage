@@ -801,11 +801,7 @@ void close_store(void * helper) {
  */
 int btree_insert(uint32_t key, void * plaintext, size_t count,
                  uint32_t encryption_key[4], uint64_t nonce, void * helper) {
-
-    header * head = helper;
-    tree_node * current_node = head->root;
-    tree_node * next_node = NULL;
-
+    
 //    pthread_mutex_lock(&head->lock);
 
 //    if (head->dbflag > 0){
@@ -819,7 +815,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
 
     if (new_key == NULL || data == NULL){
 //        pthread_mutex_unlock(&head->lock);
-        pthread_rwlock_unlock(&head->lock);
+//        pthread_rwlock_unlock(&head->lock);
         return 1;
     }
 
@@ -848,6 +844,9 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     /*
      * Lock
      */
+    header * head = helper;
+    tree_node * current_node = head->root;
+    tree_node * next_node = NULL;
     pthread_rwlock_rdlock(&head->lock);
 
     // Check if the key already exists in the tree.
