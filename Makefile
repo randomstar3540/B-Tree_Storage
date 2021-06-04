@@ -19,4 +19,4 @@ tests: btreestore.c
 	ar rcs $(LIBRARY) $(OBJECT)
 
 run_tests: testS.c btreestore.c
-	$(CC) $(CFLAGS) $^ -o $@ -L"." -lcmocka-static
+	$(CC) $(TESTFLAGS) $^ -o $@ -L"." -lcmocka-static
