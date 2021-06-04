@@ -69,6 +69,7 @@ typedef struct header{
 //    pthread_mutex_t lock;
     pthread_rwlock_t lock;
     pthread_rwlockattr_t attr;
+    int64_t dbflag;
 }header;
 
 void * init_store(uint16_t branching, uint8_t n_processors);

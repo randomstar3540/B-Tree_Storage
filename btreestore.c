@@ -775,6 +775,7 @@ void * init_store(uint16_t branching, uint8_t n_processors) {
     tree->key_size = 0;
     tree->node_size = 1;
     tree->minimum = ceil((branching-1) / 2);
+    tree->dbflag = 0;
 //    pthread_mutex_init(&tree->lock,NULL);
     pthread_rwlockattr_init(&tree->attr);
     pthread_rwlockattr_setkind_np(&tree->attr,PTHREAD_RWLOCK_PREFER_WRITER_NP);
@@ -807,6 +808,10 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
 
 //    pthread_mutex_lock(&head->lock);
     pthread_rwlock_wrlock(&head->lock);
+    if (head->dbflag > 0){
+        head->dbflag -= 1;
+        printf("ins %d\n",key);
+    }
 
     //Allocating space for the new key and data
     key_node * new_key = (key_node *)malloc(sizeof(key_node));
@@ -1010,6 +1015,8 @@ int btree_decrypt(uint32_t key, void * output, void * helper) {
         next_node = NULL;
     }
     pthread_rwlock_unlock(&head->lock);
+    printf("de : %d\n",key);
+    head->dbflag += 5;
     return 1;
 }
 
