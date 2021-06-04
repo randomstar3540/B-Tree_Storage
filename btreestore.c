@@ -834,9 +834,10 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
      * Lock
      */
     header * head = helper;
+    pthread_rwlock_wrlock(&head->lock);
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
-    pthread_rwlock_wrlock(&head->lock);
+
 
     // Check if the key already exists in the tree.
     if(check_exist(key,helper) == 0){
