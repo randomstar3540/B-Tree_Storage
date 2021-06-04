@@ -807,7 +807,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     tree_node * next_node = NULL;
 
 //    pthread_mutex_lock(&head->lock);
-    pthread_rwlock_rdlock(&head->lock);
+
 //    if (head->dbflag > 0){
 //        head->dbflag -= 1;
 //        printf("ins %d\n",key);
@@ -830,7 +830,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
 
     if(chunk_size == -1){
 //        pthread_mutex_unlock(&head->lock);
-        pthread_rwlock_unlock(&head->lock);
+//        pthread_rwlock_unlock(&head->lock);
         return 1;
     }
 
@@ -850,13 +850,15 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     if(check_exist(key,helper) == 0){
         free_key(new_key);
 //        pthread_mutex_unlock(&head->lock);
-        pthread_rwlock_unlock(&head->lock);
+//        pthread_rwlock_unlock(&head->lock);
         return 1;
     }
 
     /*
      * mutex Lock
      */
+
+    pthread_rwlock_rdlock(&head->lock);
 
 
     while (current_node != NULL || current_node->current_size > 0){
@@ -878,6 +880,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
                 // Check if the key already exists in the tree.
 //                pthread_mutex_unlock(&head->lock);
                 pthread_rwlock_unlock(&head->lock);
+                free_key(new_key);
                 return 1;
             }
         }
@@ -893,6 +896,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     if(current_node == NULL){
 //        pthread_mutex_unlock(&head->lock);
         pthread_rwlock_unlock(&head->lock);
+        free_key(new_key);
         return 1;
     }
 
