@@ -34,7 +34,7 @@ void dfs_debug(tree_node * node, uint64_t* counter){
     if (node == NULL){
         return;
     }
-//    print_node(node,*counter);
+    print_node(node,*counter);
     for (int i = 0; i < node->current_size + CHILD_SIZE_OFFSET; ++i) {
         dfs_debug(*(node->children + i), counter);
     }
@@ -835,6 +835,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
      */
     header * head = helper;
     pthread_rwlock_wrlock(&head->lock);
+
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
 
@@ -897,10 +898,12 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
 }
 
 int btree_retrieve(uint32_t key, struct info * found, void * helper) {
+
     header * head = helper;
+    pthread_rwlock_rdlock(&head->lock);
+
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
-    pthread_rwlock_rdlock(&head->lock);
 
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
@@ -943,6 +946,7 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
 int btree_decrypt(uint32_t key, void * output, void * helper) {
     header * head = helper;
     pthread_rwlock_rdlock(&head->lock);
+
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
 
@@ -1015,12 +1019,11 @@ int btree_delete(uint32_t key, void * helper) {
     // Check if the key already exists in the tree.
 
     header * head = helper;
+    pthread_rwlock_wrlock(&head->lock);
+
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
     uint8_t found = FALSE;
-
-//    pthread_mutex_lock(&head->lock);
-    pthread_rwlock_wrlock(&head->lock);
 
     if(check_exist(key,helper) == 1){
 //        pthread_mutex_unlock(&head->lock);
@@ -1124,10 +1127,8 @@ uint64_t btree_export(void * helper, struct node ** list) {
     uint64_t counter_num = 0;
     uint64_t * counter = &counter_num;
 
-//    pthread_mutex_lock(&head->lock);
     pthread_rwlock_rdlock(&head->lock);
     dfs_export(head->root,list,counter);
-//    pthread_mutex_unlock(&head->lock);
     pthread_rwlock_unlock(&head->lock);
 
     return head->node_size;
