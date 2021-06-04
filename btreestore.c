@@ -801,21 +801,12 @@ void close_store(void * helper) {
  */
 int btree_insert(uint32_t key, void * plaintext, size_t count,
                  uint32_t encryption_key[4], uint64_t nonce, void * helper) {
-    
-//    pthread_mutex_lock(&head->lock);
-
-//    if (head->dbflag > 0){
-//        head->dbflag -= 1;
-//        printf("ins %d\n",key);
-//    }
 
     //Allocating space for the new key and data
     key_node * new_key = (key_node *)malloc(sizeof(key_node));
     void * data = malloc(count);
 
     if (new_key == NULL || data == NULL){
-//        pthread_mutex_unlock(&head->lock);
-//        pthread_rwlock_unlock(&head->lock);
         return 1;
     }
 
@@ -825,8 +816,6 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     int64_t chunk_size = divide_data((uint8_t **)&data,count);
 
     if(chunk_size == -1){
-//        pthread_mutex_unlock(&head->lock);
-//        pthread_rwlock_unlock(&head->lock);
         free_key(new_key);
         return 1;
     }
@@ -847,7 +836,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     header * head = helper;
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
-    pthread_rwlock_rdlock(&head->lock);
+    pthread_rwlock_wrlock(&head->lock);
 
     // Check if the key already exists in the tree.
     if(check_exist(key,helper) == 0){
@@ -952,9 +941,9 @@ int btree_retrieve(uint32_t key, struct info * found, void * helper) {
 
 int btree_decrypt(uint32_t key, void * output, void * helper) {
     header * head = helper;
+    pthread_rwlock_rdlock(&head->lock);
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
-    pthread_rwlock_rdlock(&head->lock);
 
     while (current_node != NULL){
         key_node * key_ptr;
