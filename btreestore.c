@@ -799,13 +799,6 @@ void close_store(void * helper) {
 int btree_insert(uint32_t key, void * plaintext, size_t count,
                  uint32_t encryption_key[4], uint64_t nonce, void * helper) {
 
-    /*
-     * Lock
-     */
-    header * head = helper;
-    pthread_rwlock_wrlock(&head->lock);
-
-
     //Allocating space for the new key and data
     key_node * new_key = (key_node *)malloc(sizeof(key_node));
     void * data = malloc(count);
@@ -833,6 +826,11 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     new_key->chunk_size = chunk_size;
 
     encrypt_key_cpy(new_key->key, encryption_key);
+    /*
+     * Lock
+     */
+    header * head = helper;
+    pthread_rwlock_wrlock(&head->lock);
 
     tree_node * current_node = head->root;
     tree_node * next_node = NULL;
