@@ -843,8 +843,11 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     new_key->chunk_size = chunk_size;
 
     encrypt_key_cpy(new_key->key, encryption_key);
-
-
+    
+    /*
+     * Lock
+     */
+    pthread_rwlock_rdlock(&head->lock);
 
     // Check if the key already exists in the tree.
     if(check_exist(key,helper) == 0){
@@ -853,13 +856,6 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
 //        pthread_rwlock_unlock(&head->lock);
         return 1;
     }
-
-    /*
-     * mutex Lock
-     */
-
-    pthread_rwlock_rdlock(&head->lock);
-
 
     while (current_node != NULL || current_node->current_size > 0){
         key_node * key_ptr;
