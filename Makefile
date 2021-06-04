@@ -20,3 +20,4 @@ tests: btreestore.c
 
 run_tests: tests.c
 	$(CC) $(TESTFLAGS) $^ -o $@ -L"." -lcmocka-static -L"." -lbtreestore
+	./run_tests
