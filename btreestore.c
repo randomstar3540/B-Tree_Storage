@@ -807,7 +807,7 @@ int btree_insert(uint32_t key, void * plaintext, size_t count,
     tree_node * next_node = NULL;
 
 //    pthread_mutex_lock(&head->lock);
-    pthread_rwlock_wrlock(&head->lock);
+    pthread_rwlock_rdlock(&head->lock);
 //    if (head->dbflag > 0){
 //        head->dbflag -= 1;
 //        printf("ins %d\n",key);
